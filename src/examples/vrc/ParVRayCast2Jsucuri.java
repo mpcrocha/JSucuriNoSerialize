@@ -1,16 +1,11 @@
 package examples.vrc;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.File;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import jsucurilegacy.*;
+import jsucuriinoserialize.*;
 import javax.imageio.ImageIO;
-import javax.management.Query;
-import javax.swing.ImageIcon;
-import javax.swing.JOptionPane;
 
 /**
  * Created by alexandrenery on 10/26/16. volumes

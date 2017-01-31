@@ -1,8 +1,6 @@
 package examples.simple;
 
-import jsucurilegacy.*;
-
-import java.io.Serializable;
+import jsucuriinoserialize.*;
 
 public class Main {
 

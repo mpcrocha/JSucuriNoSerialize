@@ -1,4 +1,4 @@
-package jsucurilegacy; /**
+package jsucuriinoserialize; /**
  * Created by alexandrenery on 9/21/16.
  */
 

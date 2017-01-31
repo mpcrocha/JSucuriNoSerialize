@@ -1,9 +1,8 @@
 package examples.lcs;
 
-import jsucurilegacy.*;
+import jsucuriinoserialize.*;
 
 import java.io.*;
-import java.io.Serializable;
 
 /**
  * Created by marcos on 08/10/16.
@@ -24,8 +23,8 @@ public class LCS {
         DFGraph lcsGraph = new DFGraph();
         Scheduler sched = new Scheduler(lcsGraph, nprocs, false);
 
-        String nameA = "/home/anery/jsucurilegacy/src/examples/lcs/seqA.txt";//sys.argv[1]
-        String nameB = "/home/anery/jsucurilegacy/src/examples/lcs/seqB.txt";//sys.argv[2]
+        String nameA = "/home/anery/jsucuriinoserialize/src/examples/lcs/seqA.txt";//sys.argv[1]
+        String nameB = "/home/anery/jsucuriinoserialize/src/examples/lcs/seqB.txt";//sys.argv[2]
 
         try {
             sA = readFile(nameA);

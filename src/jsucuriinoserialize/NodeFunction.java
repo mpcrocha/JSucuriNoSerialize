@@ -1,4 +1,4 @@
-package jsucurilegacy;
+package jsucuriinoserialize;
 
 import java.io.Serializable;
 
