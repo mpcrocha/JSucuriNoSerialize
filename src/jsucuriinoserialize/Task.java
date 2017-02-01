@@ -2,6 +2,7 @@ package jsucuriinoserialize; /**
  * Created by alexandrenery on 9/20/16.
  */
 
+import java.io.IOException;
 import java.io.Serializable;
 
 public class Task implements Serializable
@@ -15,6 +16,20 @@ public class Task implements Serializable
         this.nf = nf;
         this.nodeid = nodeid;
         this.args = args;
+    }
+
+    private void writeObject(java.io.ObjectOutputStream stream)
+            throws IOException {
+        stream.writeObject(nf);
+        stream.writeInt(nodeid);
+        stream.writeObject(args);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream)
+            throws IOException, ClassNotFoundException {
+        nf = (NodeFunction) stream.readObject();
+        nodeid = stream.readInt();
+        args = (Object[]) stream.readObject();
     }
 
 

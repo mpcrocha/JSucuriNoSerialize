@@ -19,8 +19,8 @@ public class Scheduler
     List<Worker> workers;
     boolean mpi_enabled;
 
-    List<PipedInputStream> worker_conns;
-    List<PipedOutputStream> conn;
+    //List<PipedInputStream> worker_conns;
+    //List<PipedOutputStream> conn;
 
     public Scheduler(DFGraph graph, Integer n_workers, boolean mpi_enabled)
     {
@@ -31,8 +31,8 @@ public class Scheduler
         this.graph = graph;
         this.tasks = new ArrayList<Task>();
 
-        this.worker_conns = new ArrayList<PipedInputStream>();
-        this.conn = new ArrayList<PipedOutputStream>();
+        //this.worker_conns = new ArrayList<PipedInputStream>();
+        //this.conn = new ArrayList<PipedOutputStream>();
 
         this.n_workers = n_workers;
         this.pending_tasks = new ArrayList<Integer>(n_workers);
@@ -44,85 +44,11 @@ public class Scheduler
 
         for(int i = 0 ; i < n_workers ; i++)
         {
-            PipedInputStream worker_conn = new PipedInputStream(2048); //defaut size 1024
-            PipedOutputStream sched_conn = new PipedOutputStream();
-
-            try{
-                worker_conn.connect(sched_conn);
-            }
-            catch( IOException e)
-            {
-                System.out.println(e + ": could not connect worker and scheduler pipes");
-                e.printStackTrace();
-            }
-            finally {
-                worker_conns.add(worker_conn);
-                conn.add(sched_conn);
-            }
-        }
-
-        for(int i = 0 ; i < n_workers ; i++)
-        {
-            workers.add(new Worker(this.graph, this.operq, worker_conns.get(i), i)); //i = workerid
+            workers.add(new Worker(this.graph, this.operq, i)); //i = workerid
             //workers.add(new Worker(this.graph, this.operq, i)); //i = workerid
         }
 
     }
-
-//    public Scheduler(DFGraph graph, Integer n_workers, boolean mpi_enabled)
-//    {
-//        tasks_array = new Task[n_workers];
-//        //this.sm = new Hashtable();
-//
-//        this.mpi_enabled = mpi_enabled; //must always be false, for now at least...
-//
-//        //this.operq = new SynchronousQueue();
-//        //this.operq = new PriorityBlockingQueue<List<jsucuri.Oper>>(10,this); //10 foi escolhido aleatoriamente
-//        this.operq = new ArrayBlockingQueue<List<Oper>>(10);
-//        this.workers = new ArrayList<Worker>();
-//        this.graph = graph;
-//        this.tasks = new ArrayList<Task>();
-//
-////        this.worker_conns = new ArrayList<PipedInputStream>();
-////        this.conn = new ArrayList<PipedOutputStream>();
-//
-//        this.n_workers = n_workers;
-//        this.pending_tasks = new ArrayList<Integer>(n_workers);
-//
-//        for(int i = 0 ; i < n_workers ; i++)
-//            pending_tasks.add(0);
-//
-//        this.waiting = new ArrayList<Integer>(n_workers);
-//
-//        //for(int i = 0 ; i < this.pending_tasks.size() ; i++)
-//        //    this.pending_tasks.add(i,0);
-//
-////        for(int i = 0 ; i < n_workers ; i++)
-////        {
-////            PipedInputStream worker_conn = new PipedInputStream(2048); //defaut size 1024
-////            PipedOutputStream sched_conn = new PipedOutputStream();
-////
-////            try{
-////                worker_conn.connect(sched_conn);
-////            }
-////            catch( IOException e)
-////            {
-////                System.out.println(e + ": could not connect worker and scheduler pipes");
-////                e.printStackTrace();
-////            }
-////            finally {
-////                worker_conns.add(worker_conn);
-////                conn.add(sched_conn);
-////            }
-////        }
-//
-//        for(int i = 0 ; i < n_workers ; i++)
-//        {
-//            //workers.add(new Worker(this.graph, this.operq, worker_conns.get(i), i)); //i = workerid
-//            workers.add(new Worker(this.graph, this.operq, i)); //i = workerid
-//        }
-//
-//    }
 
     public Integer check_match(Node node)
     {
@@ -166,37 +92,6 @@ public class Scheduler
 
     }
 
-/*
-    public Integer check_match(jsucuri.Node node)
-    {
-        if(node.inport != null)
-        {
-            for(int i = 0 ; i < node.inport.length ; i++)
-            {
-                System.out.println("jsucuri.Node[" + i + "]: " + node.inport[i]);
-            }
-        }
-
-        for(int i = 0 ; i < node.inport[0].size() ; i++)
-        {
-            jsucuri.TagVal tv = node.inport[0].get(i);
-            int count = 1;
-
-            for(int j = 1 ; j < node.inport.length ; j++)
-            {
-                List<jsucuri.TagVal> port = node.inport[j];
-
-                if(port.contains(tv))
-                    count++;
-            }
-
-            if(count == node.inport.length)
-                return tv.tag;
-        }
-
-        return null;
-    }
-*/
 
     public void propagate_op(Oper oper)
     {
@@ -254,101 +149,12 @@ public class Scheduler
 
     public void terminate_workers()
     {
-        for (int i= 0 ; i < this.worker_conns.size() ; i++) {
-            PipedInputStream pi = this.worker_conns.get(i);
-            try {
-                pi.close();
-            }catch(IOException e)
-            {
-                System.out.println("Cannot close PipedInputStream. " + e);
-                e.printStackTrace();
-            }
-        }
-
-        for (int i= 0 ; i < this.conn.size() ; i++) {
-            PipedOutputStream po = this.conn.get(i);
-            try {
-                po.close();
-            }catch(IOException e)
-            {
-                System.out.println("Cannot close PipedOutputStream. " + e);
-                e.printStackTrace();
-            }
-        }
-
         System.out.println("Terminating workers " + all_idle() + " " + operq.size() + " " + tasks.size());
         for (Worker w : workers)
         {
-            PipedInputStream pi = w.getPipeInput();
-            try{
-                pi.close();
-            }
-            catch(IOException e)
-            {
-                e.printStackTrace();
-            }
-
             w.terminate();
-
-            /*jsucuri.Worker w = this.workers.get(i);
-            try{
-                w.join();
-            }
-            catch(InterruptedException e)
-            {
-                e.printStackTrace();
-            }*/
         }
     }
-
-//    public void terminate_workers()
-//    {
-////        for (int i= 0 ; i < this.worker_conns.size() ; i++) {
-////            PipedInputStream pi = this.worker_conns.get(i);
-////            try {
-////                pi.close();
-////            }catch(IOException e)
-////            {
-////                System.out.println("Cannot close PipedInputStream. " + e);
-////                e.printStackTrace();
-////            }
-////        }
-////
-////        for (int i= 0 ; i < this.conn.size() ; i++) {
-////            PipedOutputStream po = this.conn.get(i);
-////            try {
-////                po.close();
-////            }catch(IOException e)
-////            {
-////                System.out.println("Cannot close PipedOutputStream. " + e);
-////                e.printStackTrace();
-////            }
-////        }
-//
-//        System.out.println("Terminating workers " + all_idle() + " " + operq.size() + " " + tasks.size());
-//        for (Worker w : workers)
-//        {
-////            PipedInputStream pi = w.getPipeInput();
-////            try{
-////                pi.close();
-////            }
-////            catch(IOException e)
-////            {
-////                e.printStackTrace();
-////            }
-//
-//            w.terminate();
-//
-//            /*jsucuri.Worker w = this.workers.get(i);
-//            try{
-//                w.join();
-//            }
-//            catch(InterruptedException e)
-//            {
-//                e.printStackTrace();
-//            }*/
-//        }
-//    }
 
     public void start()
     {
@@ -374,6 +180,7 @@ public class Scheduler
 
     public void main_loop()
     {
+        long totalWriteTime = 0l;
         while(this.tasks.size() > 0 || !all_idle() || this.operq.size() > 0 )
         {
             List<Oper> opermsg = null;
@@ -428,142 +235,15 @@ public class Scheduler
                 if(wid < n_workers)
                 {
                     Worker worker = workers.get(wid);
-
-                    ObjectOutputStream oos = null;
-                    try{
-                        oos = new ObjectOutputStream(new BufferedOutputStream(conn.get(worker.wid)));
-                        //System.out.println("Sent: " + task);
-                        oos.writeObject(task);
-                        oos.flush();
-                        //oos.close();
-                    }catch (IOException e)
-                    {
-                        e.printStackTrace();
-                    }
+                    worker.taskQueue.add(task);
                 }
-
-
             }
-
-
         }
         System.out.println("Waiting " + this.waiting.size());
         terminate_workers();
+        System.out.println("TotalWriteTime: "+ totalWriteTime);
         System.out.println("jsucuri.Scheduler finished!");
     }
-
-//    public void main_loop()
-//    {
-//        while(this.tasks.size() > 0 || !all_idle() || this.operq.size() > 0 )
-//        {
-//            List<Oper> opermsg = null;
-//            try {
-//                opermsg = operq.take();
-//            }
-//            catch(InterruptedException e)
-//            {
-//                e.printStackTrace();
-//            }
-//            finally {
-//                if(opermsg == null)
-//                {
-//                    System.out.println("Error! Opermsg null!");
-//                    System.exit(0);
-//                }
-//            }
-//
-//            for (int i = 0; i < opermsg.size(); i++) {
-//                Oper oper = opermsg.get(i);
-//                if (oper.value != null) {
-//                    propagate_op(oper);
-//                }
-//            }
-//
-//            Integer wid = opermsg.get(0).wid;
-//
-//            if(!waiting.contains(wid) && opermsg.get(0).request_task)
-//            {
-//                if(pending_tasks.get(wid) > 0)
-//                    pending_tasks.set(wid,pending_tasks.get(wid) - 1);
-//                else
-//                    waiting.add(wid);
-//            }
-//
-//            while(tasks.size() > 0 && waiting.size() > 0)
-//            {
-//                Task task = tasks.remove(0);
-//                wid = check_affinity(task);
-//                if(wid != null)
-//                {
-//                    if(waiting.contains(wid))
-//                        waiting.remove(wid);
-//                    else
-//                        pending_tasks.set(wid,pending_tasks.get(wid) + 1);
-//                }
-//                else
-//                {
-//                    wid = waiting.remove(0);
-//                }
-//
-//                if(wid < n_workers)
-//                {
-//                    Worker worker = workers.get(wid);
-//
-//                    if(worker.activeTask == null) {
-//                        worker.activeTask = task;
-//                    }
-//                    else {
-//                        while (worker.activeTask != null) {
-//                            //do nothing
-//                        }
-//                        worker.activeTask = task;
-//                    }
-//
-//                    //System.out.println("scheduler active task: " + worker.activeTask);
-//
-////                    ObjectOutputStream oos = null;
-////                    try{
-////                        oos = new ObjectOutputStream(new BufferedOutputStream(conn.get(worker.wid)));
-////                        //System.out.println("Sent: " + task);
-////                        oos.writeObject(task);
-////                        oos.flush();
-////                        //oos.close();
-////                    }catch (IOException e)
-////                    {
-////                        e.printStackTrace();
-////                    }
-//                }
-//
-//
-//            }
-//
-//
-//        }
-//        System.out.println("Waiting " + this.waiting.size());
-//        terminate_workers();
-//        System.out.println("jsucuri.Scheduler finished!");
-//    }
-
-    /*
-    public int compare(Object o1, Object o2)
-    {
-        jsucuri.Oper op1 = (jsucuri.Oper) o1;
-        jsucuri.Oper op2 = (jsucuri.Oper) o2;
-
-        if(op1.tag > op2.tag)
-        {
-            return 1;
-        }
-        else if(op1.tag < op2.tag)
-        {
-            return -1;
-        }
-        else
-        {
-            return 0;
-        }
-    }
-*/
 
 }
 
