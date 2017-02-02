@@ -1,11 +1,18 @@
 package examples.vrc;
 
+import jsucuriinoserialize.*;
+
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import jsucuriinoserialize.*;
+
 import javax.imageio.ImageIO;
+import javax.management.Query;
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 
 /**
  * Created by alexandrenery on 10/26/16. volumes
@@ -44,75 +51,76 @@ public class ParVRayCast2Jsucuri {
         min.scale(200.0f);
         max.scale(200.0f);
 
-        Camera cam = new Camera(imWidth, imHeight, eye, lookat);
+        //NodeFunction[] rayCastNodesFunction = new NodeFunction[numRayCastNodes];
+        //for(int i = 0; i<numRayCastNodes;i++){
+            //rayCastNodesFunction[i]
+        NodeFunction raycast =  new NodeFunction() {
+                @Override
+                public Object f(Object[] inputs) {
+                    int threadId = (Integer) inputs[0];
+                    float[] data = (float[]) inputs[1];
+                    Camera camera = (Camera) inputs[2];
+                    int samplesRayCast = (Integer) inputs[3];
+                    Grid gridRayCast = (Grid) inputs[4];
+                    int numRayCastNodesRayCast = (Integer) inputs[5];
 
-        Grid grid = new Grid(min, max, nx, ny, nz);
+                    float rcp_samples = 1.0f / (float) samplesRayCast;
 
-        NodeFunction rayCast = new NodeFunction() {
-            @Override
-            public Object f(Object[] inputs) {
-                int threadId = (Integer) inputs[0];
-                float[] data = (float[]) inputs[1];
-                Camera camera = (Camera) inputs[2];
-                int samplesRayCast = (Integer) inputs[3];
-                Grid gridRayCast = (Grid) inputs[4];
-                int numRayCastNodesRayCast = (Integer) inputs[5];
+                    float chunckSize = (camera.getWidth() / new Float(numRayCastNodesRayCast));
+                    int chunck = (int) Math.ceil(chunckSize);
 
-                float rcp_samples = 1.0f / (float) samplesRayCast;
+                    List<java.awt.Color> colorList = new ArrayList<java.awt.Color>();
+                    //System.out.println("chunck: " +chunck);
+                    int start = threadId * chunck;
+                    int end = start + chunck < camera.getWidth() ? start + chunck : camera.getWidth();
+                    //System.out.println("threadId: "+threadId + " start: "+start +" end: " + end);
+                    int numberPixels = chunck * camera.getHeight();
 
-                float chunckSize = (camera.getWidth() / new Float(numRayCastNodesRayCast));
-                int chunck = (int) Math.ceil(chunckSize);
+                    //System.out.println("Number of pixels: " + numberPixels);
+                    for (int i = start; i < end; i++) {
+                        for (int j = 0; j < camera.getHeight(); j++) {
+                            float r, g, b;
+                            r = g = b = 0.0f;
 
-                List<java.awt.Color> colorList = new ArrayList<java.awt.Color>();
-                //System.out.println("chunck: " +chunck);
-                int start = threadId * chunck;
-                int end = start + chunck < camera.getWidth() ? start + chunck : camera.getWidth();
-                //System.out.println("threadId: "+threadId + " start: "+start +" end: " + end);
-                int numberPixels = chunck * camera.getHeight();
+                            for (int s = 0; s < samplesRayCast; s++) {
+                                Ray ray = camera.get_primary_ray(i, j, samplesRayCast);
+                                // Ray ray = get_primary_ray(cam, i, j, samples);
 
-                //System.out.println("Number of pixels: " + numberPixels);
-                for (int i = start; i < end; i++) {
-                    for (int j = 0; j < camera.getHeight(); j++) {
-                        float r, g, b;
-                        r = g = b = 0.0f;
+                                // System.out.println("ray: " + ray);
 
-                        for (int s = 0; s < samplesRayCast; s++) {
-                            Ray ray = camera.get_primary_ray(i, j, samplesRayCast);
-                            // Ray ray = get_primary_ray(cam, i, j, samples);
+                                Color c = gridRayCast.intersectGrid(ray, data, 1.0f);
 
-                            // System.out.println("ray: " + ray);
+                                r += c.r;
+                                g += c.g;
+                                b += c.b;
 
-                            Color c = gridRayCast.intersectGrid(ray, data, 1.0f);
+                            }
 
-                            r += c.r;
-                            g += c.g;
-                            b += c.b;
+                            r = r * rcp_samples;
+                            g = g * rcp_samples;
+                            b = b * rcp_samples;
 
+                            float maxColor = Math.max(Math.max(r, g), b);
+                            if (maxColor > 1.0f) {
+                                r = r / maxColor;
+                                g = g / maxColor;
+                                b = b / maxColor;
+                            }
+
+                            // System.out.println("rgb = " + r + "," + g + "," + b);
+
+                            java.awt.Color color = new java.awt.Color(r, g, b);
+                            //System.out.println("size"+ colorList.size());
+                            colorList.add(color);
+
+                            //im.setRGB(i, j, c.getRGB());
                         }
-
-                        r = r * rcp_samples;
-                        g = g * rcp_samples;
-                        b = b * rcp_samples;
-
-                        float maxColor = Math.max(Math.max(r, g), b);
-                        if (maxColor > 1.0f) {
-                            r = r / maxColor;
-                            g = g / maxColor;
-                            b = b / maxColor;
-                        }
-
-                        // System.out.println("rgb = " + r + "," + g + "," + b);
-
-                        java.awt.Color color = new java.awt.Color(r, g, b);
-                        //System.out.println("size"+ colorList.size());
-                        colorList.add(color);
-
-                        //im.setRGB(i, j, c.getRGB());
                     }
+                    return colorList;
                 }
-                return colorList;
-            }
-        };
+            };
+        //}
+
 
         NodeFunction readImage = new NodeFunction() {
             @Override
@@ -169,8 +177,9 @@ public class ParVRayCast2Jsucuri {
                         int  b  =  colorInt & 0x000000ff;
                         java.awt.Color c = new java.awt.Color(r, g, b);*/
                             int index = indexHeight + (height * indexColorList);
-                            //System.out.println("index: " +index);
+
                             java.awt.Color c = colorListPartial.get(index);
+                            //System.out.println("index: " +index + "Color: "+c.getRGB());
                             //System.out.println(indexWidth +" "+ indexHeight);
                             im.setRGB(indexWidth, indexHeight, c.getRGB());
                         }
@@ -220,15 +229,15 @@ public class ParVRayCast2Jsucuri {
         filePathFeeder.add_edge(readImageNode, 0);
         dimensionsFeeder.add_edge(readImageNode, 1);
 
-        Feeder cameraFeeder = new Feeder(cam);
+        Feeder cameraFeeder = new Feeder(new Camera(imWidth, imHeight, eye, lookat) );
         graph.add(cameraFeeder);
         cameraFeeder.add_edge(out, numRayCastNodes);
 
         Feeder samplesFeeder = new Feeder(samples);
         graph.add(samplesFeeder);
 
-        Feeder gridFeeder = new Feeder(grid);
-        graph.add(gridFeeder);
+        //Feeder gridFeeder = new Feeder(grid);
+        //graph.add(gridFeeder);
 
         Feeder numRayCastNodesFeeder = new Feeder(numRayCastNodes);
         graph.add(numRayCastNodesFeeder);
@@ -236,17 +245,28 @@ public class ParVRayCast2Jsucuri {
 
         List<Node> rayCastNodesList = new ArrayList<Node>();
         List<Feeder> feederNodesList = new ArrayList<Feeder>();
+
+        List<Feeder> feederCameraList = new ArrayList<Feeder>();
+        List<Feeder> feedeGridList = new ArrayList<Feeder>();
+
+
         for (int i = 0; i < numRayCastNodes; i++) {
             feederNodesList.add(new Feeder(i));
             graph.add(feederNodesList.get(i));
-            rayCastNodesList.add(new Node(rayCast, 6));
+            //rayCastNodesList.add(new Node(rayCastNodesFunction[i], 6));
+            rayCastNodesList.add(new Node(raycast, 6));
             graph.add(rayCastNodesList.get(i));
+
+            feederCameraList.add(new Feeder(new Camera(imWidth, imHeight, eye, lookat)));
+            feedeGridList.add(new Feeder(new Grid(min, max, nx, ny, nz)));
+            graph.add(feederCameraList.get(i));
+            graph.add(feedeGridList.get(i));
 
             feederNodesList.get(i).add_edge(rayCastNodesList.get(i), 0);
             readImageNode.add_edge(rayCastNodesList.get(i), 1);
-            cameraFeeder.add_edge(rayCastNodesList.get(i), 2);
+            feederCameraList.get(i).add_edge(rayCastNodesList.get(i), 2);
             samplesFeeder.add_edge(rayCastNodesList.get(i), 3);
-            gridFeeder.add_edge(rayCastNodesList.get(i), 4);
+            feedeGridList.get(i).add_edge(rayCastNodesList.get(i), 4);
             numRayCastNodesFeeder.add_edge(rayCastNodesList.get(i), 5);
 
             rayCastNodesList.get(i).add_edge(out, i);
