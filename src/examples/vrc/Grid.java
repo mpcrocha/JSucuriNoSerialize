@@ -23,6 +23,11 @@ public class Grid implements Serializable{
     //private ArrayList<TransferControlPoint> colorKnots;
     private ArrayList<Point3d> alphaKnots;
 
+    public Grid()
+    {
+
+    }
+
     public Grid(Point3d min, Point3d max, int nx, int ny, int nz) {
 
         p0 = min;

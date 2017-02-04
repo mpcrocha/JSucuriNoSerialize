@@ -31,6 +31,11 @@ public class Camera implements Serializable{
     private Point3d urand[];
     private int irand[];
 
+    public Camera()
+    {
+
+    }
+
     public Camera(int width, int height, Point3d eye, Point3d lookat)
     {
         this.width = width;
