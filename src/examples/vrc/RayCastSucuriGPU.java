@@ -129,7 +129,7 @@ public class RayCastSucuriGPU {
                 Camera cam = (Camera)inputs[inputs.length-1];
                 int width = cam.getWidth();
                 int height = cam.getHeight();
-                CLEvent kernelEv = kernel.enqueueNDRange(queueCL, new int[]{width, height});
+                CLEvent kernelEv = kernel.enqueueNDRange(queueCL, new int[]{width});
                 queueCL.finish();
 
                 Object[] outputEvent = new Object[]{bufferOutput, kernelEv};
@@ -143,12 +143,12 @@ public class RayCastSucuriGPU {
             public Object f(Object[] inputs) {
                 Object[] outputEvent = (Object[])inputs[0];
                 CLBuffer<Character> bufferOutput = (CLBuffer<Character>) outputEvent[0];
-                Pointer<Character> colors = bufferOutput.read(queueCL);
+
                 CLEvent kernelEv = (CLEvent)outputEvent[1];
 
                 Camera camera = (Camera)inputs[1];
                 kernelEv.waitFor();
-
+                Pointer<Character> colors = bufferOutput.read(queueCL);
                 BufferedImage im = new BufferedImage(camera.getWidth(), camera.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
 
                 File outputfile = new File("output.png");
@@ -158,10 +158,13 @@ public class RayCastSucuriGPU {
                     for (int indexWidth = 0;  indexWidth < width; indexWidth++) {
                         for (int indexHeight = 0; indexHeight < height; indexHeight++) {
 
-                        int  r   = colors.get(3* (indexWidth * height + indexHeight) + 0);
-                        int  g = colors.get(3* (indexWidth * height + indexHeight) + 1);
-                        int  b  =  colors.get(3* (indexWidth * height + indexHeight) + 2);
-                        java.awt.Color c = new java.awt.Color(r, g, b);
+                        char  r   = colors.get(3* (indexWidth * height + indexHeight) + 0);
+                            //r  = r>255?255:r;
+                        char  g = colors.get(3* (indexWidth * height + indexHeight) + 1);
+                            //g  = g>255?255:g;
+                        char  b  =  colors.get(3* (indexWidth * height + indexHeight) + 2);
+                            //b = b>255?255:b;
+                        java.awt.Color c = new java.awt.Color((int)r, (int)g, (int)b);
                             im.setRGB(indexWidth, indexHeight, c.getRGB());
 
                         }
@@ -188,6 +191,10 @@ public class RayCastSucuriGPU {
         int imWidth = new Integer(args[3]);
         int imHeight = new Integer(args[4]);
         int samples = new Integer(args[5]).intValue();
+
+        imWidth = 5;
+        imHeight = 5;
+
 
 
         initializeCLVariables();
