@@ -32,7 +32,8 @@ public class Util implements Serializable{
         if(!file.exists())
             return null;
 
-        byte array[] = new byte[(int) file.length()];
+        //byte array[] = new byte[(int) file.length()];
+        byte array[] = new byte[(int) bytes];
         RandomAccessFile ra = new RandomAccessFile(filename,"r");
 
         ra.read(array);
@@ -43,6 +44,8 @@ public class Util implements Serializable{
         for(int i = 0 ; i < array.length ; i++)
         {
             result[i] = (float) ((float) array[i]/ (float) Byte.MAX_VALUE);
+           // System.out.println("result["+i+"]"+result[i]);
+
         }
 
         return result;

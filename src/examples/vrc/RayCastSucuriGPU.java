@@ -22,17 +22,18 @@ public class RayCastSucuriGPU {
 
 
     public static void main(String args[]){
-        int nx = 256;
-        int ny = 256;
-        int nz = 256;
+        int nx = 4;//256;
+        int ny = 4;
+        int nz = 4;
 
-        final Point3d eye = new Point3d(-2000.0f, -2000.0f, 2000.0f);
+        float scaleRate = 100.0f;
+        final Point3d eye = new Point3d(-800.0f, -800.0f, 800.0f);
         Point3d lookat = new Point3d(0.0f, -100.0f, 0.0f);
-        Point3d min = new Point3d(-1.0f, -1.0f, -1.0f);
-        Point3d max = new Point3d(1.0f, 1.0f, 1.0f);
+        Point3d min = new Point3d(-1.0f*scaleRate, -1.0f*scaleRate, -1.0f*scaleRate);
+        Point3d max = new Point3d(1.0f*scaleRate, 1.0f*scaleRate, 1.0f*scaleRate);
 
-        min.scale(200.0f);
-        max.scale(200.0f);
+        min.scale(1.0f);
+        max.scale(1.0f);
 
 
         NodeFunction readImage = new NodeFunction() {
@@ -149,6 +150,7 @@ public class RayCastSucuriGPU {
                 Camera camera = (Camera)inputs[1];
                 kernelEv.waitFor();
                 Pointer<Character> colors = bufferOutput.read(queueCL);
+                imprimirPointerList(colors);
                 BufferedImage im = new BufferedImage(camera.getWidth(), camera.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
 
                 File outputfile = new File("output.png");
@@ -192,8 +194,8 @@ public class RayCastSucuriGPU {
         int imHeight = new Integer(args[4]);
         int samples = new Integer(args[5]).intValue();
 
-        imWidth = 5;
-        imHeight = 5;
+        imWidth = 2;
+        imHeight = 2;
 
 
 
@@ -301,6 +303,12 @@ public class RayCastSucuriGPU {
     static private void initializeCLVariables(){
         context = JavaCL.createBestContext();
         queueCL = context.createDefaultQueue();
+    }
+
+    private static void imprimirPointerList(Pointer<Character> optionsPointer) {
+        for (long i = 0, numEle = optionsPointer.getValidElements(); i < numEle; i++)
+            System.out.println("optionsPointer.get " + i + ":" + optionsPointer.get(i));
+
     }
 
 }

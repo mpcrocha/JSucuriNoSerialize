@@ -18,20 +18,5 @@ public class Task implements Serializable
         this.args = args;
     }
 
-    private void writeObject(java.io.ObjectOutputStream stream)
-            throws IOException {
-        stream.writeObject(nf);
-        stream.writeInt(nodeid);
-        stream.writeObject(args);
-    }
-
-    private void readObject(java.io.ObjectInputStream stream)
-            throws IOException, ClassNotFoundException {
-        nf = (NodeFunction) stream.readObject();
-        nodeid = stream.readInt();
-        args = (Object[]) stream.readObject();
-    }
-
-
 }
 

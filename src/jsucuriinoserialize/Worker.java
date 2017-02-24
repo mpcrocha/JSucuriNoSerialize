@@ -53,19 +53,14 @@ public class Worker extends Thread
 
         while(!terminate)
         {
-
             Task task;
             Node node;
-            //ObjectInputStream ois = null;
 
             if(!taskQueue.isEmpty()){
                 task = taskQueue.poll();
                 System.out.println("task.nf = " + task.nf);
 
-                //ois.close();
-                //System.out.println("Recv: " + task);
                 node = this.graph.nodes.get(task.nodeid);
-
                 node.run(task.args, this.wid, this.operq);
             }
 

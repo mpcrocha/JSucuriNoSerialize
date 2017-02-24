@@ -11,6 +11,15 @@ public class Camera implements Serializable{
     private int width;
     private int height;
     private Point3d eye;
+
+    public Point3d getEye() {
+        return eye;
+    }
+
+    public Point3d getLookat() {
+        return lookat;
+    }
+
     private Point3d lookat;
 
     /*private Point3d u;

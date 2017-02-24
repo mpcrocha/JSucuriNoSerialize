@@ -12,6 +12,27 @@ public class Grid implements Serializable{
     private Point3d p0;
     private Point3d p1;
     private int nx, ny, nz;
+
+    public Point3d getP0() {
+        return p0;
+    }
+
+    public Point3d getP1() {
+        return p1;
+    }
+
+    public int getNx() {
+        return nx;
+    }
+
+    public int getNy() {
+        return ny;
+    }
+
+    public int getNz() {
+        return nz;
+    }
+
     private int total;
     private float t0;
     private float t1;
@@ -112,10 +133,17 @@ public class Grid implements Serializable{
             t_max.z = ((p0.z - r.o.z) * c);
         }
 
+        /*System.out.print("t_min->x:"+t_min.x +
+                "t_min->y:" +t_min.y +
+        "t_min->z:" + t_min.z + "\n" +
+        "t_max->x:" + t_max.x +
+        "t_max->y:" + t_max.y +
+        "t_max->z:" + t_max.z);*/
         t0 = Math.max(Math.max(t_min.x, t_min.y), t_min.z);
         t1 = Math.min(Math.min(t_max.x, t_max.y), t_max.z);
-
+        System.out.println("T0: " + t0 + " " + "T1: " + t1);
         if (t0 < t1) {
+            System.out.println("t0 < t1");
             return true;
         }
 
