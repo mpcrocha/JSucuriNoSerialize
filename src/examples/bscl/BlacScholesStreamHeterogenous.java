@@ -605,30 +605,13 @@ public class BlacScholesStreamHeterogenous {
 
             for (int i = numSimultaneousInstances; i < numBsclFiles; i++) {
 
-
-                assyncCopyOptionsInNode.add_edge(assyncKernelNode2, 0);
-                assyncCopyInNode2.add_edge(assyncKernelNode2, 1);
-                numOptionsFeeder.add_edge(assyncKernelNode2, 2);
-                contextFeeder.add_edge(assyncKernelNode2, 3);
-                queue1Feeder.add_edge(assyncKernelNode2, 4);
-
-                // assyncCopyOutNode.add_edge(assyncKernelNode2, 1);
-                assyncKernelNode2.add_edge(assyncCopyOutNode2, 0);
-                queue1Feeder.add_edge(assyncCopyOutNode2, 1);
-                numOptionsFeeder.add_edge(assyncCopyOutNode2, 2);
-
-
-                assyncCopyOutNode2.add_edge(writeResults1, 0);
-                feederOut1.add_edge(writeResults1, 1);
-
-
                 feederStockTimeNodeList.add(new Feeder(baseFileName + "_" + i + ".txt"));
                 readStockTimeNodeList.add(new Node(readStockTime, 2));
                 feeder1List.add(new Feeder(i % 2 == 0 ? 0 : 1));
-                assyncCopyInNode2List.add(new Node(assyncCopyIN, 2));
-                assyncKernelNodeList.add(new Node(assyncKernel, 2));
+                assyncCopyInNode2List.add(new Node(assyncCopyIN, 5));
+                assyncKernelNodeList.add(new Node(assyncKernel, 5));
                 feederNumOutList.add(new Feeder(i));
-                assyncCopyOutNodesList.add(new Node(assyncCopyOut, 1));
+                assyncCopyOutNodesList.add(new Node(assyncCopyOut, 3));
                 writeResultsNodesList.add(new Node(writeResults, 2));
 
                 // System.out.println("assyncCopyOutNodesList.size():" +
@@ -653,6 +636,12 @@ public class BlacScholesStreamHeterogenous {
 				 * + assyncKernelNode2List.get(indLists).id);
 				 */
 
+
+
+
+                assyncCopyOutNode2.add_edge(writeResults1, 0);
+                feederOut1.add_edge(writeResults1, 1);
+
                 feederStockTimeNodeList.get(indLists).add_edge(readStockTimeNodeList.get(indLists), 0);
                 numOptionsFeeder.add_edge(readStockTimeNodeList.get(indLists), 1);
 
@@ -662,18 +651,34 @@ public class BlacScholesStreamHeterogenous {
                 int iterPar = i % 2 == 0 ? 0 : 1;
                 if(iterPar == 0){
                     queue0Feeder.add_edge(assyncCopyInNode2List.get(indLists), 3);
-                    feeder0.add_edge(assyncCopyInNode2List.get(indLists), 4);
+
 
                 }else{
                     queue1Feeder.add_edge(assyncCopyInNode2List.get(indLists), 3);
-                    feeder1.add_edge(assyncCopyInNode2List.get(indLists), 4);
+
 
                 }
+                assyncKernelNodeList.get(indLists).add_edge(assyncCopyInNode2List.get(indLists), 4);
 
-                assyncKernelNodeList.get(indLists).add_edge(readStockTimeNodeList.get(indLists), 2);
-                assyncCopyInNode2List.get(indLists).add_edge(assyncKernelNodeList.get(i), 0);
-                assyncCopyOutNodesList.get(indLists).add_edge(assyncKernelNodeList.get(i), 1);
+                //assyncKernelNodeList.get(indLists).add_edge(readStockTimeNodeList.get(indLists), 2);
+                assyncCopyOptionsInNode.add_edge(assyncKernelNodeList.get(i), 0);
+                assyncCopyInNode2List.get(indLists).add_edge(assyncKernelNodeList.get(i), 1);
+                numOptionsFeeder.add_edge(assyncKernelNodeList.get(i), 2);
+                contextFeeder.add_edge(assyncKernelNodeList.get(i), 3);
+                if(iterPar == 0){
+                    queue0Feeder.add_edge(assyncKernelNodeList.get(i), 4);
+                }else{
+                    queue1Feeder.add_edge(assyncKernelNodeList.get(i), 4);
+                }
+
                 assyncKernelNodeList.get(i).add_edge(assyncCopyOutNodesList.get(i), 0);
+                if(iterPar == 0){
+                    queue0Feeder.add_edge(assyncCopyOutNodesList.get(i), 1);
+                }else{
+                    queue1Feeder.add_edge(assyncCopyOutNodesList.get(i), 1);
+                }
+                numOptionsFeeder.add_edge(assyncCopyOutNodesList.get(i), 2);
+
                 assyncCopyOutNodesList.get(i).add_edge(writeResultsNodesList.get(i), 0);
                 feederNumOutList.get(indLists).add_edge(writeResultsNodesList.get(i), 1);
 
