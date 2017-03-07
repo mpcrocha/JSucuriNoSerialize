@@ -375,17 +375,17 @@ public class BlacScholesStreamHeterogenous {
             @Override
             public Object f(Object[] inputs) {
                 Object[] inputsBscl = (Object[]) inputs[0];
-                Float[] a_g = (Float[]) inputs[1];
+                Float[] a_g = (Float[]) ((Object[])inputs[1])[3];
 
                 // for(int i=0;i<optionsCPU.length;i++)
                 // System.out.println("optionsCPU: " + optionsCPU[i]);
                 Float[] s_g = (Float[]) inputsBscl[0];
                 Float[] t_g = (Float[]) inputsBscl[1];
 
-                int threadId = (Integer) inputs[1];
-                int numOptions = (Integer) inputs[2];
-                int numBsclNodes = (Integer) inputs[3];
-                int numOptionsFields = (Integer) inputs[4];
+                int threadId = (Integer) inputs[2];
+                int numOptions = (Integer) inputs[3];
+                int numBsclNodes = (Integer) inputs[4];
+                int numOptionsFields = (Integer) inputs[5];
                 int chunck = numOptions / numBsclNodes;
                 Float[] res_g = new Float[chunck];
 
@@ -522,11 +522,20 @@ public class BlacScholesStreamHeterogenous {
 
         DFGraph dfg = new DFGraph();
         // System.out.println("Testando...");
+        Node readNode = new Node(readOptions, 3);
+        dfg.add(readNode);
+        Feeder numOptionsFeeder = new Feeder(numOptions);
+        dfg.add(numOptionsFeeder);
+        Feeder numBsclNodesFeeder = new Feeder(numBsclNodes);
+        dfg.add(numBsclNodesFeeder);
+        Feeder numFieldsBSCLFeeder = new Feeder(numOptionsFields);
+        dfg.add(numFieldsBSCLFeeder);
+
         if (percentageWorkGPU > 0.0)
 
         {
             Feeder optionsFileNode = new Feeder(baseFileName + ".txt");
-            Node readNode = new Node(readOptions, 3);
+
             Feeder feeder0 = new Feeder(0);
             Node assyncCopyOptionsInNode = new Node(assyncCopyOptionsIN, 5);
             Node assyncCopyInNode = new Node(assyncCopyIN, 5);
@@ -534,8 +543,8 @@ public class BlacScholesStreamHeterogenous {
             Feeder feederOut0 = new Feeder(0);
             Node assyncCopyOutNode = new Node(assyncCopyOut, 3);
             Node writeResults0 = new Node(writeResults, 2);
-            Feeder numOptionsFeeder = new Feeder(numOptions);
-            Feeder numFieldsBSCLFeeder = new Feeder(numOptionsFields);
+
+
             Feeder contextFeeder = new Feeder(context);
             Feeder emptyArrayFeeder = new Feeder(new Object[0]);
 
@@ -563,7 +572,7 @@ public class BlacScholesStreamHeterogenous {
             writeResultsNodesList.add(writeResults1);
 
             dfg.add(optionsFileNode);
-            dfg.add(readNode);
+
             dfg.add(feeder0);
             dfg.add(assyncCopyOptionsInNode);
             dfg.add(assyncCopyInNode);
@@ -571,8 +580,8 @@ public class BlacScholesStreamHeterogenous {
             dfg.add(feederOut0);
             dfg.add(assyncCopyOutNodesList.get(0));
             dfg.add(writeResultsNodesList.get(0));
-            dfg.add(numOptionsFeeder);
-            dfg.add(numFieldsBSCLFeeder);
+
+
             dfg.add(queue0Feeder);
             dfg.add(queue1Feeder);
             dfg.add(contextFeeder);
@@ -772,7 +781,7 @@ public class BlacScholesStreamHeterogenous {
             dfg.add(feederStockTimeCPUNodeList.get(indexInstanceCPU));
 
             feederStockTimeCPUNodeList.get(indexInstanceCPU).add_edge(readNodeCPUNodeList.get(indexInstanceCPU), 0);
-            feederIndexBufferList.get(indexInstanceCPU).add_edge(readNodeCPUNodeList.get(indexInstanceCPU), 1);
+            numOptionsFeeder.add_edge(readNodeCPUNodeList.get(indexInstanceCPU), 1);
             numOutFileNodeList.get(indexInstanceCPU).add_edge(writeOptNodeList.get(indexInstanceCPU), numBsclNodes);
 
             List<Feeder> listaFeeders = new ArrayList<Feeder>();
@@ -782,11 +791,15 @@ public class BlacScholesStreamHeterogenous {
                 listaFeeders.add(new Feeder(i));
                 dfg.add(listaFeeders.get(i));
 
-                listaBsclNodes.add(new Node(bscl, 2));
+                listaBsclNodes.add(new Node(bscl, 6));
                 dfg.add(listaBsclNodes.get(i));
 
                 readNodeCPUNodeList.get(indexInstanceCPU).add_edge(listaBsclNodes.get(i), 0);
-                listaFeeders.get(i).add_edge(listaBsclNodes.get(i), 1);
+                readNode.add_edge(listaBsclNodes.get(i), 1);
+                listaFeeders.get(i).add_edge(listaBsclNodes.get(i), 2);
+                numOptionsFeeder.add_edge(listaBsclNodes.get(i), 3);
+                numBsclNodesFeeder.add_edge(listaBsclNodes.get(i), 4);
+                numFieldsBSCLFeeder.add_edge(listaBsclNodes.get(i), 5);
 
                 listaBsclNodes.get(i).add_edge(writeOptNodeList.get(indexInstanceCPU), i);
             }
