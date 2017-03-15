@@ -25,17 +25,13 @@ import com.nativelibs4java.opencl.JavaCL;
  * /home/marcos/Dropbox/Mestrado/tese/experimentoBSCL/inputs/in_4 1 2 4 5 4 0.5 256 4
  *
  * java -jar bscl.jar
- * /home/marcos/Dropbox/Mestrado/tese/experimentoBSCL/inputs/in_4 2 2 4 5 4
+ * /home/marcos/Dropbox/Mestrado/tese/experimentoBSCL/inputs/in_4 2 2 4 5 4 0.5 256 4
+ * /home/marcos/Dropbox/Mestrado/tese/experimentoBSCL/inputs/in_65536 1000 2 65536 5 2 0.0 256 4
  *
  * 
  */
 public class BlacScholesStreamHeterogenous {
 
-
-    //static CLContext context = JavaCL.createBestContext();
-    //static CLQueue queueCL1 = context.createDefaultQueue();
-    //static CLQueue queueCL2 = context.createDefaultQueue();
-    //static List<CLQueue> queueCLList = new ArrayList<CLQueue>();
 
     public static void main(String[] args) {
 
@@ -311,13 +307,13 @@ public class BlacScholesStreamHeterogenous {
 
                 Object[] buffersStockTimeEvents = (Object[]) inputs[1];
                 if(inputs[1] instanceof Object[] && ((Object[])inputs[1]).length >1) {
-                    System.out.println("if kernel");
+                    //System.out.println("if kernel");
                     bufferStock = (CLBuffer<Float>) buffersStockTimeEvents[0];
                     bufferTime = (CLBuffer<Float>) buffersStockTimeEvents[1];
                     copyStocksEv = (CLEvent) buffersStockTimeEvents[2];
                     copyTimeEv = (CLEvent) buffersStockTimeEvents[3];
                 }else{
-                    System.out.println("else kernel");
+                    //System.out.println("else kernel");
                     bufferStock = (CLBuffer<Float>) bufferEventOptions[1];
                     bufferTime = (CLBuffer<Float>) bufferEventOptions[2];
                     copyStocksEv = (CLEvent) bufferEventOptions[4];
@@ -328,10 +324,10 @@ public class BlacScholesStreamHeterogenous {
                 CLContext context = (CLContext) inputs[3];
                 CLKernel kernel = context.createProgram(source).createKernel("bscl");
 
-                CLBuffer<Float> bufferOutput = context.createBuffer(CLMem.Usage.Input, Float.class, numOptions);
+                CLBuffer<Float> bufferOutput = context.createBuffer(CLMem.Usage.Output, Float.class, numOptions);
 
 
-                kernel.setArgs(5, bufferOptions, bufferStock, bufferTime, bufferOutput);
+                kernel.setArgs(5, bufferOptions, bufferStock, bufferTime, bufferOutput, 65536);
 
 
                 copyOptionsEv.waitFor();
@@ -348,9 +344,10 @@ public class BlacScholesStreamHeterogenous {
                 // kernelEv = kernel.enqueueNDRange(queueCL, new int[] { numOptions
                 // });
 
-                int localWorkSizeGPU = 256;
+                int localWorkSizeGPU = 128;
                 int[] localWorkSizes = new int[]{localWorkSizeGPU, 1};
-                int globalSize = ((int) ((float) numOptions / (float) localWorkSizes[0]) * localWorkSizes[0]);
+                //int globalSize = ((int) ((float) numOptions / (float) localWorkSizes[0]) * localWorkSizes[0]);
+                int globalSize = 60 * 1024;
                 int[] globalWorkSizes = null;
                 if (globalSize <= 0) {
                     globalSize = numOptions;
@@ -770,7 +767,7 @@ public class BlacScholesStreamHeterogenous {
                 readNodeCPUNodeList.add(new Node(readStockTimeCPU, 2));
                 feederStockTimeCPUNodeList.add(new Feeder(baseFileName + "_" + indexIteration + ".txt"));
             } else {
-                readNodeCPUNodeList.add(new Node(readOptions, 2));
+                readNodeCPUNodeList.add(new Node(readOptions, 3));
                 feederStockTimeCPUNodeList.add(new Feeder(baseFileName + ".txt"));
             }
             // dfg.add(optionsFileNode);
@@ -782,6 +779,10 @@ public class BlacScholesStreamHeterogenous {
 
             feederStockTimeCPUNodeList.get(indexInstanceCPU).add_edge(readNodeCPUNodeList.get(indexInstanceCPU), 0);
             numOptionsFeeder.add_edge(readNodeCPUNodeList.get(indexInstanceCPU), 1);
+
+            if(indexIteration == 0)
+                numFieldsBSCLFeeder.add_edge(readNodeCPUNodeList.get(indexInstanceCPU), 2);
+
             numOutFileNodeList.get(indexInstanceCPU).add_edge(writeOptNodeList.get(indexInstanceCPU), numBsclNodes);
 
             List<Feeder> listaFeeders = new ArrayList<Feeder>();
