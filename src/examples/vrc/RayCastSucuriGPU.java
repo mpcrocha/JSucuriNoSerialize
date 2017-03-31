@@ -6,10 +6,10 @@ import org.bridj.Pointer;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 /**
@@ -22,9 +22,9 @@ public class RayCastSucuriGPU {
 
 
     public static void main(String args[]){
-        int nx = 4;//256;
-        int ny = 4;
-        int nz = 4;
+        int nx = 256;//256;
+        int ny = 256;
+        int nz = 256;
 
         float scaleRate = 100.0f;
         final Point3d eye = new Point3d(-800.0f, -800.0f, 800.0f);
@@ -116,13 +116,42 @@ public class RayCastSucuriGPU {
                 int samples = (Integer)inputs[1];
                 Grid grid = (Grid)inputs[2];
                 Camera camera = (Camera)inputs[3];
+
+
+                int NRAN = 1024;
+                int RAND_MAX = Integer.MAX_VALUE;
+                int numPixels = camera.getWidth()*camera.getHeight();
+                Pointer<Float> urandXPointer = Pointer.allocateFloats(NRAN);
+                Pointer<Float> urandYPointer = Pointer.allocateFloats(NRAN);
+                Pointer<Integer> irandPointer = Pointer.allocateInts(NRAN);
+                Pointer<Integer> mDebugPointer = Pointer.allocateInts(numPixels);
+
+                Random random = new Random();
+                int i,j;
+                for(i=0; i<NRAN; i++) urandXPointer.set(random.nextFloat() / RAND_MAX - 0.5f);
+                for(i=0; i<NRAN; i++) urandYPointer.set(random.nextFloat() / RAND_MAX - 0.5f);
+                for(i=0; i<NRAN; i++) irandPointer.set((int) (NRAN * (random.nextFloat() / RAND_MAX)));
+
+                for(i = 0 ; i <numPixels ; i++)
+                    mDebugPointer.set(-1);
+
+                CLBuffer<Float> bufferUrandX = context.createBuffer(CLMem.Usage.Input, Float.class,
+                        NRAN);
+                CLBuffer<Float> bufferUrandY = context.createBuffer(CLMem.Usage.Input, Float.class,
+                        NRAN);
+                CLBuffer<Integer> bufferIrand = context.createBuffer(CLMem.Usage.Input, Integer.class,
+                        NRAN);
+                CLBuffer<Integer> bufferMDebug = context.createBuffer(CLMem.Usage.Input, Integer.class,
+                        NRAN);
+
                 kernel.setArgs(bufferData, samples, grid.getP0().x,
                         grid.getP1().x, grid.getP0().y, grid.getP1().y,
                         grid.getP0().z, grid.getP1().z, grid.getNx(),
                         grid.getNy(), grid.getNz(), camera.getLookat().x,
                         camera.getLookat().y, camera.getLookat().z,
                         camera.getEye().x, camera.getEye().y, camera.getEye().z,
-                        camera.getWidth(), camera.getHeight(), bufferOutput);
+                        camera.getWidth(), camera.getHeight(), bufferOutput, bufferUrandX,
+                        bufferUrandY, bufferIrand, bufferMDebug);
 
                 CLEvent copyDataEv = (CLEvent)buffersEvents[1];
 
@@ -150,40 +179,50 @@ public class RayCastSucuriGPU {
                 Camera camera = (Camera)inputs[1];
                 kernelEv.waitFor();
                 Pointer<Character> colors = bufferOutput.read(queueCL);
-                imprimirPointerList(colors);
-                BufferedImage im = new BufferedImage(camera.getWidth(), camera.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+                //imprimirPointerList(colors);
+                //BufferedImage im = new BufferedImage(camera.getWidth(), camera.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
 
-                File outputfile = new File("output.png");
-
+                //File outputfile = new File("output.ppm");
+                // write header
                 int width = camera.getWidth();
                 int height = camera.getHeight();
-                    for (int indexWidth = 0;  indexWidth < width; indexWidth++) {
-                        for (int indexHeight = 0; indexHeight < height; indexHeight++) {
 
-                        char  r   = colors.get(3* (indexWidth * height + indexHeight) + 0);
-                            //r  = r>255?255:r;
-                        char  g = colors.get(3* (indexWidth * height + indexHeight) + 1);
-                            //g  = g>255?255:g;
-                        char  b  =  colors.get(3* (indexWidth * height + indexHeight) + 2);
-                            //b = b>255?255:b;
-                        java.awt.Color c = new java.awt.Color((int)r, (int)g, (int)b);
-                            im.setRGB(indexWidth, indexHeight, c.getRGB());
+                try {
+                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("output.ppm")));
 
+                    writer.write("P3");
+                    writer.newLine();
+                    writer.write(width+" "+height);
+                    writer.newLine();
+                    writer.write("255");
+                    writer.newLine();
+
+                    for(int indexW = 0; indexW < width; indexW ++) {
+                        for (int indexH = 0; indexH < height; indexH++) {
+                            int index = indexW*height +indexH;
+                            writer.write(
+                                    //Character.getNumericValue(colors.get(3*(index) + 0)) +" "+
+                                    //Character.getNumericValue(colors.get(3*(index) + 0)) +" "+
+                                    //Character.getNumericValue(colors.get(3 * (index) + 1))+ " " +
+                                    //Character.getNumericValue(colors.get(3 * (index) + 2)));
+
+                                    (int)colors.get(3*(index) + 0) +" "+
+                                            (int)colors.get(3 * (index) + 1)+ " " +
+                                            (int)colors.get(3 * (index) + 2)
+                            );
+
+                            writer.newLine();
                         }
                     }
 
-                try {
-                    ImageIO.write(im, "png", outputfile);
-                } catch (Exception e) {
+                    writer.flush();
+                    writer.close();
+
+                    }catch (Exception e) {
                     e.printStackTrace();
                 }
 
-                //ImageIcon imageIcon = new ImageIcon(im);
-
-                //JOptionPane.showMessageDialog(null, imageIcon, "Output image", JOptionPane.PLAIN_MESSAGE);
                 return 0;
-
-
             }
         };
 
@@ -193,11 +232,6 @@ public class RayCastSucuriGPU {
         int imWidth = new Integer(args[3]);
         int imHeight = new Integer(args[4]);
         int samples = new Integer(args[5]).intValue();
-
-        imWidth = 2;
-        imHeight = 2;
-
-
 
         initializeCLVariables();
 
