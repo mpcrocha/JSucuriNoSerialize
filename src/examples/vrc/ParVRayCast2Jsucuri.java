@@ -34,8 +34,8 @@ public class ParVRayCast2Jsucuri {
         int imHeight = new Integer(args[4]);
         int samples = new Integer(args[5]).intValue();
 
-        imWidth = 5;
-        imHeight = 5;
+        //imWidth = 800;
+        //imHeight = 600;
 
 
         //imWidth = 1280;

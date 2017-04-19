@@ -103,7 +103,7 @@ public class RayCastSucuriGPU {
                 Object[] buffersEvents = (Object[])inputs[0];
                 CLBuffer<Float> bufferData = (CLBuffer<Float>)buffersEvents[0];
 
-                CLBuffer<Character> bufferOutput = context.createBuffer(CLMem.Usage.Output, Character.class,
+                CLBuffer<Integer> bufferOutput = context.createBuffer(CLMem.Usage.Output, Integer.class,
                         bufferData.getElementCount()*3);
 
                 CLKernel kernel = context.createProgram(source).createKernel("raycast");

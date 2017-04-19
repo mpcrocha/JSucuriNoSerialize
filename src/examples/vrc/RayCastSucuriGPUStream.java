@@ -3,9 +3,6 @@ package examples.vrc;
 import com.nativelibs4java.opencl.*;
 import jsucuriinoserialize.*;
 import org.bridj.Pointer;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,9 +12,9 @@ import java.util.Scanner;
 /**
  * Created by marcos on 05/02/17.
  *
- * numWorkers numRayCastNodes filepath imWidth imHeight samples numIters numSimultaneousIters
+ * numWorkers imWidth imHeight samples numIters numSimultaneousIters
  *
- * 4 4 foot.raw 1280 720 1 2 2
+ * 4 1280 720 1 2 2
  */
 public class RayCastSucuriGPUStream {
 
@@ -67,29 +64,22 @@ public class RayCastSucuriGPUStream {
         NodeFunction assyncCopyIN =  new NodeFunction() {
             @Override
             public Object f(Object[] inputs) {
-                System.out.println("assync copy in");
+
                 float[] data = (float[])inputs[0];
-                //int samples = (Integer)inputs[1];
-                //Grid grid = (Grid)inputs[2];
-                //Camera camera = (Camera)inputs[3];
 
                 Pointer<Float> dataPointer = Pointer.allocateFloats(data.length);
                 for(int i = 0; i < data.length; i++)
                     dataPointer.set(i, data[i]);
 
                 CLBuffer<Float> bufferData = context.createBuffer(CLMem.Usage.Input, Float.class, dataPointer.getValidElements());
-                //CLBuffer<Float> bufferStock = context.createBuffer(CLMem.Usage.Input, Float.class, numOptions);
-                //CLBuffer<Float> bufferTime = context.createBuffer(CLMem.Usage.Input, Float.class, numOptions);
 
                 if(inputs[inputs.length - 1] instanceof CLEvent) {
                     CLEvent previousKernelEvent = (CLEvent)inputs[inputs.length - 1];
                     previousKernelEvent.waitFor();
-                    //queueCL.finish();
+
                 }
 
                 CLEvent copyDataEv = bufferData.write(queueCL, dataPointer, false);
-                //CLEvent copyStocksEv = bufferStock.write(queueCL, stocksPointer, false);
-                //CLEvent copyTimeEv = bufferTime.write(queueCL, timesPointer, false);
 
                 Object[] bufferEvents = new Object[]{bufferData, copyDataEv};
 
@@ -117,12 +107,7 @@ public class RayCastSucuriGPUStream {
                         bufferData.getElementCount()*3);
 
                 CLKernel kernel = context.createProgram(source).createKernel("raycast");
-                //kernel.setArg(0, bufferData);
-                //for(int i = 1; i<inputs.length; i++)
-                //kernel.setObjectArg(i, inputs[i]);
 
-                //kernel.setArg(inputs.length, bufferOutput);
-                //kernel.setArgs(5, bufferOptions, bufferStock, bufferTime, bufferOutput);
                 int samples = (Integer)inputs[1];
                 Grid grid = (Grid)inputs[2];
                 Camera camera = (Camera)inputs[3];
@@ -140,12 +125,10 @@ public class RayCastSucuriGPUStream {
                 Camera cam = (Camera)inputs[inputs.length-2];
                 int width = cam.getWidth();
                 int height = cam.getHeight();
-
-
+                
                 int NRAN = 1024;
                 int RAND_MAX = Integer.MAX_VALUE;
                 int numPixels = camera.getWidth()*camera.getHeight();
-                System.out.println(numPixels);
                 Pointer<Float> urandXPointer = Pointer.allocateFloats(NRAN);
                 Pointer<Float> urandYPointer = Pointer.allocateFloats(NRAN);
                 Pointer<Integer> irandPointer = Pointer.allocateInts(NRAN);
@@ -204,7 +187,6 @@ public class RayCastSucuriGPUStream {
                 Pointer<Integer> colors = bufferOutput.read(queueCL);
 
                 int num_output_image = (Integer)inputs[2];
-                System.out.println("Num out image" + num_output_image);
                 File outputFile = new File("output_" + num_output_image + ".ppm");
 
                 int width = camera.getWidth();
@@ -241,20 +223,20 @@ public class RayCastSucuriGPUStream {
             }
         };
 
-
         int numWorkers = new Integer(args[0]);
-        int numRayCastNodes = new Integer(args[1]);
-        String filepath = args[2];
-        int imWidth = new Integer(args[3]);
-        int imHeight = new Integer(args[4]);
-        int samples = new Integer(args[5]).intValue();
-        int numIters = new Integer(args[6]).intValue();
-        int numSimultaneousIters = new Integer(args[7]).intValue();
-
-        //imWidth = 2;
-        //imHeight = 2;
+        int imWidth = new Integer(args[1]);
+        int imHeight = new Integer(args[2]);
+        int samples = new Integer(args[3]).intValue();
+        int numIters = new Integer(args[4]).intValue();
+        int numSimultaneousIters = new Integer(args[5]).intValue();
 
         initializeCLVariables();
+
+        List<String> imagesInputList = new ArrayList<String>();
+        imagesInputList.add("foot.raw");
+        imagesInputList.add("skull.raw");
+        imagesInputList.add("engine.raw");
+        imagesInputList.add("aneurism.raw");
 
         DFGraph graph = new DFGraph();
         Scheduler sched = new Scheduler(graph, numWorkers, false);
@@ -269,8 +251,10 @@ public class RayCastSucuriGPUStream {
         List<Feeder> gridFeederList = new ArrayList<Feeder>();
         List<Feeder> samplesFeederList = new ArrayList<Feeder>();
         List<Feeder> numIterFeederList = new ArrayList<Feeder>();
-        for(int i = 0; i<numIters; i++){
-            Feeder filePathFeeder = new Feeder(feederPath(filepath));
+
+        for(int i = 0; i < numIters; i++){
+            Feeder filePathFeeder = new Feeder(imagesInputList.get(
+                    i % imagesInputList.size()));
             filePathFeederList.add(filePathFeeder);
             graph.add(filePathFeederList.get(i));
             Feeder dimensionsFeeder = new Feeder(feederDimension(dimensions));

@@ -141,9 +141,9 @@ public class Grid implements Serializable{
         "t_max->z:" + t_max.z);*/
         t0 = Math.max(Math.max(t_min.x, t_min.y), t_min.z);
         t1 = Math.min(Math.min(t_max.x, t_max.y), t_max.z);
-        System.out.println("T0: " + t0 + " " + "T1: " + t1);
+        //System.out.println("T0: " + t0 + " " + "T1: " + t1);
         if (t0 < t1) {
-            System.out.println("t0 < t1");
+            //System.out.println("t0 < t1");
             return true;
         }
 

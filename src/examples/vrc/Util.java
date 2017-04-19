@@ -44,10 +44,7 @@ public class Util implements Serializable{
         for(int i = 0 ; i < array.length ; i++)
         {
             result[i] = (float) ((float) array[i]/ (float) Byte.MAX_VALUE);
-           // System.out.println("result["+i+"]"+result[i]);
-
         }
-
         return result;
     }
 

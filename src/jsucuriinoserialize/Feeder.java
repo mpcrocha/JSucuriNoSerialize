@@ -25,7 +25,8 @@ public class Feeder extends Node {
 
     private Object f()
     {
-        System.out.println("Feeding " + value);
+
+        //System.out.println("Feeding " + value);
         return value;
     }
 

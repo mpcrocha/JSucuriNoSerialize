@@ -6,8 +6,8 @@ import java.io.Serializable;
  * Created by marcos on 01/10/16.
  */
 public class TaggedValue implements Serializable {
-    Object value;
-    Integer tag;
+    public Object value;
+    public Integer tag;
     Boolean requestTask = true;
 
     public TaggedValue(){

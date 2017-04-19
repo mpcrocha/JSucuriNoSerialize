@@ -37,16 +37,16 @@ public class VectorAdd {
 		CLQueue queue = context.createDefaultQueue();
 		
 		String source =
-			"__global const float x = 9.0fss;"+
+			"#define  x 9.0f \n"+
 			"__kernel void addFloats(__global const float* a, __global const float* b, __global float* output)     " +
 			"{                                                                                                     " +
 			"   int i = get_global_id(0);                                                                         " +
-					"   printf("x:%f", x);                                                                         " +
+                    "   printf(\"x:%f\\n\", x);                                                                         " +
 			"   output[i] = a[i] + b[i];                                                                          " +
 			"}                                                                                                     ";
 		
 		CLKernel kernel = context.createProgram(source).createKernel("addFloats");
-		CLBuffer<Float> aBuf = context.createBuffer(CLMem.Usage.Input, 1.0, true);
+		//CLBuffer<Float> aBuf = context.createBuffer(CLMem.Usage.Input, 1.0, true);
 		CLBuffer<Float> aBuf = context.createBuffer(CLMem.Usage.Input, a, true);
 		CLBuffer<Float> bBuf = context.createBuffer(CLMem.Usage.Input, b, true);
 		CLBuffer<Float> outBuf = context.createBuffer(CLMem.Usage.Output, Float.class, n);

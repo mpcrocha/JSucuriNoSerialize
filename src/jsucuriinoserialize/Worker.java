@@ -58,7 +58,8 @@ public class Worker extends Thread
 
             if(!taskQueue.isEmpty()){
                 task = taskQueue.poll();
-                System.out.println("task.nf = " + task.nf);
+
+                //System.out.println("task.nf = " + task.nf);
 
                 node = this.graph.nodes.get(task.nodeid);
                 node.run(task.args, this.wid, this.operq);
