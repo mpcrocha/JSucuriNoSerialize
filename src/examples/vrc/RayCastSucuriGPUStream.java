@@ -125,7 +125,7 @@ public class RayCastSucuriGPUStream {
                 Camera cam = (Camera)inputs[inputs.length-2];
                 int width = cam.getWidth();
                 int height = cam.getHeight();
-                
+
                 int NRAN = 1024;
                 int RAND_MAX = Integer.MAX_VALUE;
                 int numPixels = camera.getWidth()*camera.getHeight();
@@ -187,11 +187,12 @@ public class RayCastSucuriGPUStream {
                 Pointer<Integer> colors = bufferOutput.read(queueCL);
 
                 int num_output_image = (Integer)inputs[2];
-                File outputFile = new File("output_" + num_output_image + ".ppm");
+
 
                 int width = camera.getWidth();
                 int height = camera.getHeight();
-
+                File outputFile = new File("Outputs/output_" + num_output_image
+                        + "_"+width +"x" +height + ".ppm");
                 try {
                     BufferedWriter writer = new BufferedWriter(
                             new OutputStreamWriter(
@@ -260,7 +261,7 @@ public class RayCastSucuriGPUStream {
             Feeder dimensionsFeeder = new Feeder(feederDimension(dimensions));
             dimensionsFeederList.add(dimensionsFeeder);
             graph.add(dimensionsFeederList.get(i));
-            Node readImageNode = new Node(readImage, 2);
+            Node readImageNode = new Node(readImage, 3);
             readImageNodeList.add(readImageNode);
             graph.add(readImageNodeList.get(i));
             Node copyInImage = new Node(assyncCopyIN, 2);
@@ -298,8 +299,16 @@ public class RayCastSucuriGPUStream {
             if(i >= numSimultaneousIters){
                 kernelList.get(i - numSimultaneousIters).add_edge(copyInImageList.get(i), 1);
                 copyOutList.get(i- numSimultaneousIters).add_edge(kernelList.get(i), 4);
+                copyOutList.get(i- numSimultaneousIters).add_edge(readImageNodeList.get(i), 2);
+            }else{
+                Feeder tokenFeeder = new Feeder(0);
+                graph.add(tokenFeeder);
+                tokenFeeder.add_edge(readImageNodeList.get(i), 2);
+                tokenFeeder.add_edge(copyInImageList.get(i), 1);
+                tokenFeeder.add_edge(kernelList.get(i), 4);
             }
         }
+        /*
         Feeder kernelcopyInImage01Token = new Feeder(0);
         graph.add(kernelcopyInImage01Token);
         kernelcopyInImage01Token.add_edge(copyInImageList.get(0), 1);
@@ -312,7 +321,7 @@ public class RayCastSucuriGPUStream {
         Feeder copyOutkernel14Token = new Feeder(0);
         graph.add(copyOutkernel14Token);
         copyOutkernel14Token.add_edge(kernelList.get(1), 4);
-
+        */
 
         System.out.println("Tracing...");
         long time1 = System.currentTimeMillis();
