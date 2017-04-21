@@ -135,7 +135,7 @@ public class RayCastSucuriGPUStream {
                 Pointer<Integer> mDebugPointer = Pointer.allocateInts(numPixels);
 
                 Random random = new Random();
-                int i,j;
+                int i;
                 for(i=0; i<NRAN; i++) urandXPointer.set(random.nextFloat() / RAND_MAX - 0.5f);
                 for(i=0; i<NRAN; i++) urandYPointer.set(random.nextFloat() / RAND_MAX - 0.5f);
                 for(i=0; i<NRAN; i++) irandPointer.set((int) (NRAN * (random.nextFloat() / RAND_MAX)));
@@ -164,11 +164,12 @@ public class RayCastSucuriGPUStream {
                 if(inputs[inputs.length - 1] instanceof CLEvent) {
                     CLEvent previousCopyOutEvent = (CLEvent)inputs[inputs.length - 1];
                     previousCopyOutEvent.waitFor();
+                    previousCopyOutEvent.release();
                 }
 
                 CLEvent kernelEv = kernel.enqueueNDRange(queueCL, new int[]{width, height}, new int[]{16, 15});
                 queueCL.finish();
-                Object[] outputEvent = new Object[]{bufferOutput, kernelEv};
+                Object[] outputEvent = new Object[]{bufferOutput, kernelEv, bufferData};
                 return outputEvent;
             }
 
@@ -181,13 +182,18 @@ public class RayCastSucuriGPUStream {
                 CLBuffer<Integer> bufferOutput = (CLBuffer<Integer>) outputEvent[0];
 
                 CLEvent kernelEv = (CLEvent)outputEvent[1];
+                CLBuffer<Float> bufferData = (CLBuffer<Float>) outputEvent[2];
 
                 Camera camera = (Camera)inputs[1];
                 kernelEv.waitFor();
+
+                kernelEv.release();
+                bufferData.release();
+
                 Pointer<Integer> colors = bufferOutput.read(queueCL);
+                bufferOutput.release();
 
                 int num_output_image = (Integer)inputs[2];
-
 
                 int width = camera.getWidth();
                 int height = camera.getHeight();
@@ -308,20 +314,6 @@ public class RayCastSucuriGPUStream {
                 tokenFeeder.add_edge(kernelList.get(i), 4);
             }
         }
-        /*
-        Feeder kernelcopyInImage01Token = new Feeder(0);
-        graph.add(kernelcopyInImage01Token);
-        kernelcopyInImage01Token.add_edge(copyInImageList.get(0), 1);
-        Feeder copyOutkernel04Token = new Feeder(0);
-        graph.add(copyOutkernel04Token);
-        copyOutkernel04Token.add_edge(kernelList.get(0), 4);
-        Feeder kernelcopyInImage11Token = new Feeder(0);
-        graph.add(kernelcopyInImage11Token);
-        kernelcopyInImage11Token.add_edge(copyInImageList.get(1), 1);
-        Feeder copyOutkernel14Token = new Feeder(0);
-        graph.add(copyOutkernel14Token);
-        copyOutkernel14Token.add_edge(kernelList.get(1), 4);
-        */
 
         System.out.println("Tracing...");
         long time1 = System.currentTimeMillis();

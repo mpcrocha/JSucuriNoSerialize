@@ -1,9 +1,6 @@
 package examples.vrc;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.io.Serializable;
+import java.io.*;
 
 /**
  * Created by alexandrenery on 10/26/16.
@@ -30,7 +27,7 @@ public class Util implements Serializable{
         File file = new File(filename);
 
         if(!file.exists())
-            return null;
+            throw new FileNotFoundException();
 
         //byte array[] = new byte[(int) file.length()];
         byte array[] = new byte[(int) bytes];
