@@ -51,7 +51,6 @@ public class RayCastSucuriGPUStream {
                 try {
                     data = Util.loadRawFileFloats(filePath, nX * nY * nZ);
                 } catch (Exception e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
                 if (data == null) {
@@ -65,11 +64,11 @@ public class RayCastSucuriGPUStream {
             @Override
             public Object f(Object[] inputs) {
 
-                float[] data = (float[])inputs[0];
+            float[] data = (float[])inputs[0];
 
-                Pointer<Float> dataPointer = Pointer.allocateFloats(data.length);
-                for(int i = 0; i < data.length; i++)
-                    dataPointer.set(i, data[i]);
+            Pointer<Float> dataPointer = Pointer.allocateFloats(data.length);
+            for(int i = 0; i < data.length; i++)
+                dataPointer.set(i, data[i]);
 
                 CLBuffer<Float> bufferData = context.createBuffer(CLMem.Usage.Input, Float.class, dataPointer.getValidElements());
 
@@ -96,7 +95,6 @@ public class RayCastSucuriGPUStream {
                 try {
                     source = new Scanner(new File("RayCastKernel.cl")).useDelimiter("\\Z").next();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
 
