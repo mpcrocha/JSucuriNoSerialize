@@ -71,7 +71,7 @@ public class RayCastSucuriGPUStreamReusedBuffers {
             for(int i = 0; i < data.length; i++)
                 dataPointer.set(i, data[i]);
 
-                CLBuffer<Float> bufferData = (CLBuffer<Float>)inputs[2];
+                CLBuffer<Float> bufferData = (CLBuffer<Float>)inputs[1];
 
                 if(inputs[inputs.length - 1] instanceof CLEvent) {
                     CLEvent previousKernelEvent = (CLEvent)inputs[inputs.length - 1];
@@ -193,7 +193,7 @@ public class RayCastSucuriGPUStreamReusedBuffers {
                 bufferOutput.release();
 
                 int num_output_image = (Integer)inputs[2];
-
+                //System.out.println(num_output_image);
                 int width = camera.getWidth();
                 int height = camera.getHeight();
                 File outputFile = new File("Outputs/output_" + num_output_image
@@ -312,16 +312,16 @@ public class RayCastSucuriGPUStreamReusedBuffers {
             kernelList.get(i).add_edge(copyOutList.get(i), 0);
             cameraFeederList.get(i).add_edge(copyOutList.get(i), 1);
             numIterFeederList.get(i).add_edge(copyOutList.get(i), 2);
-            bufferFeederList.get(i).add_edge(copyInImageList.get(i), 2);
-            if(i >= numSimultaneousIters){
-                kernelList.get(i - numSimultaneousIters).add_edge(copyInImageList.get(i), 1);
+            bufferFeederList.get(i).add_edge(copyInImageList.get(i), 1);
+            if(i > numSimultaneousIters -1){
+                kernelList.get(i - numSimultaneousIters).add_edge(copyInImageList.get(i), 2);
                 copyOutList.get(i- numSimultaneousIters).add_edge(kernelList.get(i), 4);
                 copyOutList.get(i- numSimultaneousIters).add_edge(readImageNodeList.get(i), 2);
             }else{
                 Feeder tokenFeeder = new Feeder(0);
                 graph.add(tokenFeeder);
                 tokenFeeder.add_edge(readImageNodeList.get(i), 2);
-                tokenFeeder.add_edge(copyInImageList.get(i), 1);
+                tokenFeeder.add_edge(copyInImageList.get(i), 2);
                 tokenFeeder.add_edge(kernelList.get(i), 4);
             }
         }
@@ -338,7 +338,7 @@ public class RayCastSucuriGPUStreamReusedBuffers {
     }
 
     static private void initializeCLVariables(){
-        context = JavaCL.createBestContext();
+        context = JavaCL.createBestContext(CLPlatform.DeviceFeature.GPU);
         queueCL = context.createDefaultQueue();
     }
 

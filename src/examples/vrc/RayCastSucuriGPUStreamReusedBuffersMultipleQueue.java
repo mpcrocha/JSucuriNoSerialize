@@ -330,7 +330,7 @@ public class RayCastSucuriGPUStreamReusedBuffersMultipleQueue {
             queueFeederList.get(i).add_edge(copyOutList.get(i), 3);
             bufferFeederList.get(i).add_edge(copyInImageList.get(i), 1);
             queueFeederList.get(i).add_edge(copyInImageList.get(i), 2);
-            if(i >= numSimultaneousIters){
+            if(i > numSimultaneousIters - 1){
                 kernelList.get(i - numSimultaneousIters).add_edge(copyInImageList.get(i), 3);
                 copyOutList.get(i- numSimultaneousIters).add_edge(kernelList.get(i), 5);
                 copyOutList.get(i- numSimultaneousIters).add_edge(readImageNodeList.get(i), 2);
