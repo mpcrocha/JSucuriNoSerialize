@@ -1,8 +1,10 @@
 package examples.javaCLTest;
+
 import com.nativelibs4java.opencl.*;
-import java.nio.*;
 import org.bridj.Pointer;
-import static org.bridj.Pointer.*;
+import org.bridj.ann.Struct;
+
+import static org.bridj.Pointer.pointerToFloats;
 
 
 /**
@@ -15,12 +17,16 @@ import static org.bridj.Pointer.*;
  * </code>
  * @author ochafik
  */
-public class VectorAdd {
+public class StructsText {
 
 	public static void main(String[] args) {
         try {
-            Pointer<Float> a = pointerToFloats(0.5f,  2.5f,  3.5f,  4.5f );
+
+
+			Pointer<Float> a = pointerToFloats(0.5f,  2.5f,  3.5f,  4.5f );
             Pointer<Float> b = pointerToFloats(10, 20, 30, 40);
+
+			//Pointer<StructVectorAdd> ps = Pointer.getPointer(structVectorAdd);
 
             Pointer<Float> sum = add(a, b);
             for (long i = 0, n = sum.getValidElements(); i < n; i++)
@@ -47,6 +53,11 @@ public class VectorAdd {
 		CLKernel kernel = context.createProgram(source).createKernel("addFloats");
 
 		CLBuffer<Float> aBuf = context.createBuffer(CLMem.Usage.Input, a, true);
+		StructVectorAdd structVectorAdd = new StructVectorAdd();
+		structVectorAdd.vecA = new float[]{0.5f, 1.0f};
+		structVectorAdd.vecB = new float[]{0.5f, 1.0f};
+
+		//CLBuffer<StructVectorAdd> textBuf = context.createBuffer(CLMem.Usage.Input, structVectorAdd, true );
 		CLBuffer<Float> bBuf = context.createBuffer(CLMem.Usage.Input, b, true);
 		CLBuffer<Float> outBuf = context.createBuffer(CLMem.Usage.Output, Float.class, n);
 		kernel.setArgs(aBuf, bBuf, outBuf);
