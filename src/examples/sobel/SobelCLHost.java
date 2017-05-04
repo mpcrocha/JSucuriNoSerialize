@@ -16,7 +16,7 @@ public class SobelCLHost {
 
 
     public static void main(String[] args){
-        CLContext context = JavaCL.createBestContext();
+        CLContext context = JavaCL.createBestContext(CLPlatform.DeviceFeature.GPU);
         SobelWrapper sobelWrapper = null;
         try {
             sobelWrapper = new SobelWrapper();
