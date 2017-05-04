@@ -26,7 +26,7 @@ public class SobelWrapper  {
         CLImage2D inputImage = context.createImage2D(CLMem.Usage.Input, image, false);
         CLImage2D outputImage = context.createImage2D(CLMem.Usage.Output, image, false);
         sobel_kernel.setArgs(inputImage, outputImage);
-        int[] globalWorkSizes = new int[] { 7360, 4128};
+        int[] globalWorkSizes = new int[] { 7360, 4128 };
         int [] localWorkS = null;
         System.out.println("Tracing...");
         long time1 = System.currentTimeMillis();
