@@ -12,6 +12,11 @@ public class ObjectCopyCL {
     private CLEvent event;
     Pointer<?> pointer;
 
+    public ObjectCopyCL() {
+        this.buffer = null;
+        this.event = null;
+    }
+
     public ObjectCopyCL(CLBuffer<?> buffer, CLEvent event) {
         this.buffer = buffer;
         this.event = event;
