@@ -10,6 +10,7 @@ import java.util.List;
 
 /**
  * Created by alexandrenery on 10/26/16.
+ * 1280 720 1 4
  */
 public class RayCastSerial {
     public static void main(String args[]) throws Exception

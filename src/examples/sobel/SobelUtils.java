@@ -45,7 +45,7 @@ public class SobelUtils {
                              int imageWidth, int imageHeight) throws IOException {
 
         String fullFileName = filename+"_"+imageWidth+"x"+imageHeight+".ppm";
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename)));
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fullFileName)));
         // write header
         writer.write("P3");
         writer.newLine();
