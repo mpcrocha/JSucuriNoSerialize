@@ -97,8 +97,8 @@ public class SobelJsucuriStreamAnimation {
 
                 CLKernel sobelKernel = context.createProgram(source).createKernel(kernelFunction);
 
-                int[] globalWorkSizes = new int[] { imageWidth * imageHeight};
-                int [] localWorkS = null;
+                long[] globalWorkSizes = new long[] { imageWidth * imageHeight};
+                long [] localWorkS = new long[]{1};
 
                 CLBuffer<Float> outputImageBuffer = (CLBuffer)inputs[6];
 
@@ -118,7 +118,7 @@ public class SobelJsucuriStreamAnimation {
                     previousCopyOut.waitFor();
                 }
 
-                CLEvent kernelEv = sobelKernel.enqueueNDRange(queue, globalWorkSizes, localWorkS);
+                CLEvent kernelEv = sobelKernel.enqueueNDRange(queue, globalWorkSizes, localWorkS, null);
 
                 ObjectCopyCL outputBufferEvent = new ObjectCopyCL(outputImageBuffer, kernelEv);
                 return outputBufferEvent;
@@ -279,14 +279,16 @@ public class SobelJsucuriStreamAnimation {
             feederImageHeight.add_edge(writeOutImageNodeList.get(i), 3);
 
             if(i < numSimulIters){
+                feederToken.add_edge(readImageNodeList.get(i), 3);
                 feederToken.add_edge(copyInImageNodeList.get(i), 1);
                 feederToken.add_edge(execKernelNodeList.get(i), 5);
-                feederToken.add_edge(readImageNodeList.get(i), 3);
+
             }
             else{
+                copyInImageNodeList.get(i - numSimulIters).add_edge(readImageNodeList.get(i), 3);
                 execKernelNodeList.get(i - numSimulIters).add_edge(copyInImageNodeList.get(i), 1);
                 copyOutImageNodeList.get(i - numSimulIters).add_edge(execKernelNodeList.get(i), 5);
-                copyInImageNodeList.get(i - numSimulIters).add_edge(readImageNodeList.get(i), 3);
+
             }
         }
 
