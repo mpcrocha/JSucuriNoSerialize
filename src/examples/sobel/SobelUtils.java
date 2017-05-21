@@ -54,7 +54,8 @@ public class SobelUtils {
         writer.write("255");
         writer.newLine();
 
-        for (int index = 0; index < (imageWidth * imageHeight * 4); index += 4) {
+        //for (int index = 0; index < (imageWidth * imageHeight * 4); index += 4) {
+        for (int index = 0; index < (imageWidth * imageHeight * 3); index += 3) {
             writer.write((int) (clamp(image.get(index + 0)) * 255.0f + 0.5f) + " ");
             writer.write((int) (clamp(image.get(index + 1)) * 255.0f + 0.5f) + " ");
             writer.write((int) (clamp(image.get(index + 2)) * 255.0f + 0.5f) + " ");

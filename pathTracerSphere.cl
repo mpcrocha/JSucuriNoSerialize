@@ -166,7 +166,7 @@ __kernel void render_kernel(__constant Sphere* spheres, const int width, const i
 const int sphere_count, __global float* output)
 {
     //printf("Sphere->radius: %f \n", spheres[0].radius);
-    printf("Sphere->emission.x: %f \n", spheres[8].emission.x);
+    //printf("Sphere->emission.x: %f \n", spheres[8].emission.x);
 
 	unsigned int work_item_id = get_global_id(0);	/* the unique global id of the work item for the current pixel */
 	unsigned int x_coord = work_item_id % width;			/* x-coordinate of the pixel */

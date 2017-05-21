@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 /**
@@ -27,8 +28,10 @@ public class PathTracerSphereJSucuri {
             @Override
             public Object f(Object[] in_operands) {
                 PathTracerUtils pathTracerUtils = new PathTracerUtils();
-                Pointer<Float> sphereScene = pathTracerUtils.setSpheres();
+                //Pointer<Float> sphereScene = pathTracerUtils.setSpheres();
+                Random rand = new Random();
 
+                Pointer<Float> sphereScene = pathTracerUtils.setSpheresIncrement(0.10f);
                 return sphereScene;
 
             }
@@ -72,8 +75,8 @@ public class PathTracerSphereJSucuri {
 
                 CLQueue queue = (CLQueue)in_operands[in_operands.length-1];
 
-                long[] globalWorkSizes = new long[] { imageWidth * imageHeight};
-                long[] localWorkS = new long[]{64};
+                int[] globalWorkSizes = new int[] { imageWidth * imageHeight};
+                int[] localWorkS = new int[]{64};
 
                 kernel.setArg(0, sphereSceneBuffer);
                 kernel.setArg(1, imageWidth);
@@ -90,7 +93,7 @@ public class PathTracerSphereJSucuri {
 
                 copyInEvent.waitFor();
 
-                CLEvent kernelEv = kernel.enqueueNDRange(queue, globalWorkSizes, localWorkS, null);
+                CLEvent kernelEv = kernel.enqueueNDRange(queue, globalWorkSizes, localWorkS);
                 ObjectCopyCL imageBufferEvent = new ObjectCopyCL(outputBuffer, kernelEv);
                 return imageBufferEvent;
 
@@ -172,7 +175,7 @@ public class PathTracerSphereJSucuri {
             CLQueue queue = context.createDefaultQueue();
             queueFeederList.add(new Feeder(queue));
             dfg.add(queueFeederList.get(i));
-            //TODO check write of output to avoid errors with different spheres nnumbers
+
             Pointer<Float> imageInput = Pointer.allocateFloats(16 * maxNumSpheres);
             CLBuffer<Float> inputImageBuffer = context.createBuffer(CLMem.Usage.Input,
                     imageInput);

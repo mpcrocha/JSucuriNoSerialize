@@ -206,7 +206,7 @@ public class PathTracerUtils {
     }
 
 
-    public Pointer<Float> setSpheresIncrement(int increment) {
+    public Pointer<Float> setSpheresIncrement(float increment) {
         int numSpheres = 9;
         Pointer<Float> sphere = Pointer.allocateFloats(16 * numSpheres);
 
