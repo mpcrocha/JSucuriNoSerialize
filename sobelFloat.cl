@@ -1,14 +1,14 @@
 const sampler_t sampler = CLK_ADDRESS_CLAMP_TO_EDGE |
  CLK_FILTER_NEAREST;
-__kernel void sobel_grayscale(__global float* src, __global float*  dst)
+__kernel void sobel_grayscale(__global float* src, __global float*  dst, int width, int height)
 {
 
    /* the unique global id of the work item for the current pixel */
    int gid = (int)get_global_id(0);
    //if(gid==0)
       //printf("%f\n: ",src[0]);
-   int width = 570;
-   int height = 881;
+   //int width = 570;
+   //int height = 881;
    unsigned int x = gid % width; /* x-coordinate of the pixel */
    unsigned int y = gid / width; /* y-coordinate of the pixel */
 

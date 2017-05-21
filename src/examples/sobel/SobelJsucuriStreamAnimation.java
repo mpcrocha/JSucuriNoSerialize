@@ -22,7 +22,7 @@ import java.util.Scanner;
  *
  * numWorker startFrame endFram numSimultIters numQueues imageFilePrefix imageWidth imageHeight
  *
- * 4 26 4920 2 2 inputsSobelJPG/$filename 1920 1032
+ * 4 26 4920 2 2 /home/marcos/Dropbox/Mestrado/tese/experimentoSobel/inputsSobel/$filename 1920 1032
  * 4 26 26 1 1 inputsSobelJPG/$filename 1920 1032
  * 4 10 10 1 1 inputsSobelJPG/$filename 570 881
  */
@@ -97,8 +97,8 @@ public class SobelJsucuriStreamAnimation {
 
                 CLKernel sobelKernel = context.createProgram(source).createKernel(kernelFunction);
 
-                long[] globalWorkSizes = new long[] { imageWidth * imageHeight};
-                long [] localWorkS = new long[]{1};
+                int[] globalWorkSizes = new int[] { imageWidth * imageHeight};
+                int [] localWorkS = null;
 
                 CLBuffer<Float> outputImageBuffer = (CLBuffer)inputs[6];
 
@@ -118,7 +118,7 @@ public class SobelJsucuriStreamAnimation {
                     previousCopyOut.waitFor();
                 }
 
-                CLEvent kernelEv = sobelKernel.enqueueNDRange(queue, globalWorkSizes, localWorkS, null);
+                CLEvent kernelEv = sobelKernel.enqueueNDRange(queue, globalWorkSizes, localWorkS);
 
                 ObjectCopyCL outputBufferEvent = new ObjectCopyCL(outputImageBuffer, kernelEv);
                 return outputBufferEvent;
@@ -227,7 +227,7 @@ public class SobelJsucuriStreamAnimation {
 
         for(int indFrame = startFrame, i = 0; indFrame <= endFrame; indFrame++, i++){
             String addNumberBefore = indFrame < 100? "00":indFrame<1000?"0":"";
-            String completeFileName = imageFilePrefix+addNumberBefore+indFrame+".jpg";
+            String completeFileName = imageFilePrefix+addNumberBefore+indFrame+".bmp";
 
             imageFileFeederList.add(new Feeder(completeFileName));
             dfg.add(imageFileFeederList.get(i));
