@@ -11,11 +11,11 @@ import javax.imageio.*;
 public class SobelSerial
 {
     // chronoJudge.jpg chronoJudgeSobelado.jpg 10
-
+    // /home/marcos/Dropbox/Mestrado/tese/experimentoSobel/inputsSobel/$filename Outputs/OutputsSobelSerial 26 50
     public static void main(String args[]) throws Exception
     {
 
-        if(args.length < 3)
+        if(args.length < 4)
         {
             System.out.println("usage: java Sobel <input> <output> <startFrame> <finalFrame>");
             return;
@@ -31,7 +31,7 @@ public class SobelSerial
 
         for(int i = startFrame; i <= finalFrame; i++) {
             String addNumberbefore = i < 100? "00":i<1000?"0":"";
-            String completeFileName = file_in+addNumberbefore+i+".bmp";
+            String completeFileName = file_in+addNumberbefore+i+".jpg";
             BufferedImage bi_original = ImageIO.read(new File(completeFileName));
             BufferedImage bi_grey = new BufferedImage(bi_original.getWidth(), bi_original.getHeight(),bi_original.getType());
             BufferedImage bi_sobel = new BufferedImage(bi_original.getWidth(), bi_original.getHeight(),bi_original.getType());

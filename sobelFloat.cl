@@ -59,9 +59,16 @@ __kernel void sobel_grayscale(__global float* src, __global float*  dst, int wid
    float gs_y = 0.3333f * (gy.x + gy.y + gy.z);
    float g = native_sqrt(gs_x * gs_x + gs_y * gs_y);
 
+   /*
    dst[(gid * 4) + 0] = src[(gid * 4) + 0];
    dst[(gid * 4) + 1] = src[(gid * 4) + 0];
    dst[(gid * 4) + 2] = src[(gid * 4) + 0];
+   dst[(gid * 4) + 3] = 1.0f;
+   */
+
+   dst[(gid * 4) + 0] = g;
+   dst[(gid * 4) + 1] = g;
+   dst[(gid * 4) + 2] = g;
    dst[(gid * 4) + 3] = 1.0f;
 
 }
