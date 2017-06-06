@@ -1,10 +1,10 @@
-import com.sun.javafx.geom.Vec3f;
+package examples.pathTracerSerial;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.nio.file.Path;
+import java.io.IOException;
 
 /**
  * Created by alexandrenery on 5/26/17.
@@ -13,84 +13,83 @@ public class PathTracer {
 
     public static final float EPSILON = 0.00003f; /* required to compensate for limited float precision */
     public static final float PI = 3.14159265359f;
-    public static final int SAMPLES = 128;
+    public static int SAMPLES = 128;
 
     public static int seed0;
     public static int seed1;
 
     private Sphere[] scene;
 
-    public PathTracer(Sphere sphere1)
+    public PathTracer()
     {
-
         this.scene = new Sphere[9];
-        initScene(scene);
+        initScene();
     }
 
-    void initScene(Sphere[] cpu_spheres){
+    void initScene(){
 
         // left wall
-        cpu_spheres[0] = new Sphere();
-        cpu_spheres[0].setRadius(200.0f);
-        cpu_spheres[0].setPosition(-200.6f, 0.0f, 0.0f);
-        cpu_spheres[0].setColor(0.75f, 0.25f, 0.25f);
-        cpu_spheres[0].setEmi(0.0f, 0.0f, 0.0f);
+        scene[0] = new Sphere();
+        scene[0].setRadius(200.0f);
+        scene[0].setPosition(-200.6f, 0.0f, 0.0f);
+        scene[0].setColor(0.75f, 0.25f, 0.25f);
+        scene[0].setEmi(0.0f, 0.0f, 0.0f);
 
         // right wall
-        cpu_spheres[1] = new Sphere();
-        cpu_spheres[1].setRadius(200.0f);
-        cpu_spheres[1].setPosition(200.6f, 0.0f, 0.0f);
-        cpu_spheres[1].setColor(0.25f, 0.25f, 0.75f);
-        cpu_spheres[1].setEmi(0.0f, 0.0f, 0.0f);
+        scene[1] = new Sphere();
+        scene[1].setRadius(200.0f);
+        scene[1].setPosition(200.6f, 0.0f, 0.0f);
+        scene[1].setColor(0.25f, 0.25f, 0.75f);
+        scene[1].setEmi(0.0f, 0.0f, 0.0f);
 
         // floor
-        cpu_spheres[2] = new Sphere();
-        cpu_spheres[2].setRadius(200.0f);
-        cpu_spheres[2].setPosition(0.0f, -200.4f, 0.0f);
-        cpu_spheres[2].setColor(0.9f, 0.8f, 0.7f);
-        cpu_spheres[2].setEmi(0.0f, 0.0f, 0.0f);
+        scene[2] = new Sphere();
+        scene[2].setRadius(200.0f);
+        scene[2].setPosition(0.0f, -200.4f, 0.0f);
+        scene[2].setColor(0.9f, 0.8f, 0.7f);
+        scene[2].setEmi(0.0f, 0.0f, 0.0f);
 
         // ceiling
-        cpu_spheres[3] = new Sphere();
-        cpu_spheres[3].setRadius(200.0f);
-        cpu_spheres[3].setPosition(0.0f, 200.4f, 0.0f);
-        cpu_spheres[3].setColor(0.9f, 0.8f, 0.7f);
-        cpu_spheres[3].setEmi(0.0f, 0.0f, 0.0f);
+        scene[3] = new Sphere();
+        scene[3].setRadius(200.0f);
+        scene[3].setPosition(0.0f, 200.4f, 0.0f);
+        scene[3].setColor(0.9f, 0.8f, 0.7f);
+        scene[3].setEmi(0.0f, 0.0f, 0.0f);
 
         // back wall
-        cpu_spheres[4] = new Sphere();
-        cpu_spheres[4].setRadius(200.0f);
-        cpu_spheres[4].setPosition(0.0f, 0.0f, -200.4f);
-        cpu_spheres[4].setColor(0.9f, 0.8f, 0.7f);
-        cpu_spheres[4].setEmi(0.0f, 0.0f, 0.0f);
+        scene[4] = new Sphere();
+        scene[4].setRadius(200.0f);
+        scene[4].setPosition(0.0f, 0.0f, -200.4f);
+        scene[4].setColor(0.9f, 0.8f, 0.7f);
+        scene[4].setEmi(0.0f, 0.0f, 0.0f);
 
         // front wall
-        cpu_spheres[5] = new Sphere();
-        cpu_spheres[5].setRadius(200.0f);
-        cpu_spheres[5].setPosition(0.0f, 0.0f, 202.0f);
-        cpu_spheres[5].setColor(0.9f, 0.8f, 0.7f);
-        cpu_spheres[5].setEmi(0.0f, 0.0f, 0.0f);
+        scene[5] = new Sphere();
+        scene[5].setRadius(200.0f);
+        scene[5].setPosition(0.0f, 0.0f, 202.0f);
+        scene[5].setColor(0.9f, 0.8f, 0.7f);
+        scene[5].setEmi(0.0f, 0.0f, 0.0f);
 
         // left sphere
-        cpu_spheres[6] = new Sphere();
-        cpu_spheres[6].setRadius(0.16f);
-        cpu_spheres[6].setPosition(-0.25f, -0.24f, -0.1f);
-        cpu_spheres[6].setColor(0.9f, 0.8f, 0.7f);
-        cpu_spheres[6].setEmi(0.0f, 0.0f, 0.0f);
+        scene[6] = new Sphere();
+        scene[6].setRadius(0.16f);
+        scene[6].setPosition(-0.25f, -0.24f, -0.1f);
+        scene[6].setColor(0.9f, 0.8f, 0.7f);
+        scene[6].setEmi(0.0f, 0.0f, 0.0f);
 
         // right sphere
-        cpu_spheres[7] = new Sphere();
-        cpu_spheres[7].setRadius(0.16f);
-        cpu_spheres[7].setPosition(0.25f, -0.24f, 0.1f);
-        cpu_spheres[7].setColor(0.9f, 0.8f, 0.7f);
-        cpu_spheres[7].setEmi(0.0f, 0.0f, 0.0f);
+        scene[7] = new Sphere();
+        scene[7].setRadius(0.16f);
+        scene[7].setPosition(0.25f, -0.24f, 0.1f);
+        scene[7].setColor(0.9f, 0.8f, 0.7f);
+        scene[7].setEmi(0.0f, 0.0f, 0.0f);
 
         // lightsource
-        cpu_spheres[8] = new Sphere();
-        cpu_spheres[8].setRadius(1.0f);
-        cpu_spheres[8].setPosition(0.0f, 1.36f, 0.0f);
-        cpu_spheres[8].setColor(0.0f, 0.0f, 0.0f);
-        cpu_spheres[8].setEmi(9.0f, 8.0f, 6.0f);
+        scene[8] = new Sphere();
+        scene[8].setRadius(1.0f);
+        scene[8].setPosition(0.0f, 1.36f, 0.0f);
+        scene[8].setColor(0.0f, 0.0f, 0.0f);
+        scene[8].setEmi(9.0f, 8.0f, 6.0f);
 
     }
 
@@ -131,7 +130,6 @@ public class PathTracer {
             }
             else
             {
-                //normal.mul(-1.0f);
                 normal_facing = new Vec3f(normal);
                 normal_facing.mul(-1.0f);
             }
@@ -183,18 +181,17 @@ public class PathTracer {
         seed0 = 36969 * ((seed0) & 65535) + ((seed0) >> 16);
         seed1 = 18000 * ((seed1) & 65535) + ((seed1) >> 16);
 
-        long ires = Integer.toUnsignedLong( ((seed0) << 16) + (seed1) );
+        //long ires = Integer.toUnsignedLong( ((seed0) << 16) + (seed1) );
+        long ires = ((seed0) << 16) + (seed1) & 0x00000000ffffffffL;
 
-
-	    long resui = Integer.toUnsignedLong((int) ((ires & 0x007fffff) | 0x40000000));  /* bitwise AND, bitwise OR */
-
-
+	    //long resui = Integer.toUnsignedLong((int) ((ires & 0x007fffff) | 0x40000000));  /* bitwise AND, bitwise OR */
+        long resui = ((int)(ires & 0x007fffff) | 0x40000000) & 0x00000000ffffffffL;
         return (Float.intBitsToFloat((int) resui) - 2.0f) / 2.0f;
     }
 
     Intersect intersectSpheres(Ray ray)
     {
-        
+        //float inf = 1e20f;
         Intersect res;
 
         res = new Intersect();
@@ -207,7 +204,7 @@ public class PathTracer {
 
             Intersect it = sphere.hit(ray);
 
-            
+            //if(it.t != 0.0f && it.t < res.t) {
             if(it.hit && it.t < res.t){
                 res.hit = it.hit;
                 res.t = it.t;
@@ -250,11 +247,11 @@ public class PathTracer {
 
                 output[x][y] = new Vec3f(clamp(finalColor.x), clamp(finalColor.y), clamp(finalColor.z));
 
-
             }
         }
         return output;
     }
+
 
     public float clamp(float x)
     {
@@ -267,35 +264,38 @@ public class PathTracer {
         return x;
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String args[]) throws Exception
+    {
 
-        int nuberFrames = new Integer(args[0]);
-        int imageWidth = new Integer(args[1]);
-        int imageHeight = new Integer(args[2]);
+        int numFrames = new Integer(args[0]);
+        int imWidth = new Integer(args[1]);
+        int imHeigth = new Integer(args[2]);
+        SAMPLES = new Integer(args[3]);
 
-        for(int i = 0; i < nuberFrames; i++){
-            PathTracer pt = new PathTracer(new Sphere());
+        PathTracer pt = new PathTracer();
 
-            Vec3f[][] output = pt.render(imageWidth, imageHeight);
+        for(int i = 0; i< numFrames; i++){
+            Vec3f[][] output = pt.render(imWidth, imHeigth);
             writeImage(output, i);
-
         }
-        
-        
 
     }
 
- public void writeImage(Vec3f output, int numberImage){
-    BufferedImage bi = new BufferedImage(output.length, output[0].length,BufferedImage.TYPE_3BYTE_BGR);
+    public static void writeImage(Vec3f[][] output, int numFrame){
+        BufferedImage bi = new BufferedImage(output.length, output[0].length,BufferedImage.TYPE_3BYTE_BGR);
 
         for(int x = 0 ; x < output.length ; x++)
         {
             for(int y = 0 ; y < output[x].length ; y++)
             {
                 bi.setRGB(x,y,new Color(output[x][y].x,output[x][y].y,output[x][y].z).getRGB());
+
             }
         }
-        ImageIO.write(bi,"png",new File("Outputs/outputPathTracerSerial_" + numberImage + ".png"));
- }
-
+        try {
+            ImageIO.write(bi,"png",new File("Outputs/outputPathTracerSerial_"+ numFrame+ ".png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

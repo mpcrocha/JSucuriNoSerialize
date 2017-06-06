@@ -1,4 +1,4 @@
-import com.sun.javafx.geom.Vec3f;
+package examples.pathTracerSerial;
 
 /**
  * Created by alexandrenery on 5/26/17.
