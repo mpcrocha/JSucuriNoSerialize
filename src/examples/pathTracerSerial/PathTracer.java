@@ -18,80 +18,16 @@ public class PathTracer {
     public static int seed0;
     public static int seed1;
 
-    private Sphere[] scene;
+    //private Sphere[] scene;
+    private World w;
 
     public PathTracer()
     {
-        this.scene = new Sphere[9];
-        initScene();
+        //this.scene = new Sphere[9];
+        w = new World();
+        w.initScene();
     }
 
-    void initScene(){
-
-        // left wall
-        scene[0] = new Sphere();
-        scene[0].setRadius(200.0f);
-        scene[0].setPosition(-200.6f, 0.0f, 0.0f);
-        scene[0].setColor(0.75f, 0.25f, 0.25f);
-        scene[0].setEmi(0.0f, 0.0f, 0.0f);
-
-        // right wall
-        scene[1] = new Sphere();
-        scene[1].setRadius(200.0f);
-        scene[1].setPosition(200.6f, 0.0f, 0.0f);
-        scene[1].setColor(0.25f, 0.25f, 0.75f);
-        scene[1].setEmi(0.0f, 0.0f, 0.0f);
-
-        // floor
-        scene[2] = new Sphere();
-        scene[2].setRadius(200.0f);
-        scene[2].setPosition(0.0f, -200.4f, 0.0f);
-        scene[2].setColor(0.9f, 0.8f, 0.7f);
-        scene[2].setEmi(0.0f, 0.0f, 0.0f);
-
-        // ceiling
-        scene[3] = new Sphere();
-        scene[3].setRadius(200.0f);
-        scene[3].setPosition(0.0f, 200.4f, 0.0f);
-        scene[3].setColor(0.9f, 0.8f, 0.7f);
-        scene[3].setEmi(0.0f, 0.0f, 0.0f);
-
-        // back wall
-        scene[4] = new Sphere();
-        scene[4].setRadius(200.0f);
-        scene[4].setPosition(0.0f, 0.0f, -200.4f);
-        scene[4].setColor(0.9f, 0.8f, 0.7f);
-        scene[4].setEmi(0.0f, 0.0f, 0.0f);
-
-        // front wall
-        scene[5] = new Sphere();
-        scene[5].setRadius(200.0f);
-        scene[5].setPosition(0.0f, 0.0f, 202.0f);
-        scene[5].setColor(0.9f, 0.8f, 0.7f);
-        scene[5].setEmi(0.0f, 0.0f, 0.0f);
-
-        // left sphere
-        scene[6] = new Sphere();
-        scene[6].setRadius(0.16f);
-        scene[6].setPosition(-0.25f, -0.24f, -0.1f);
-        scene[6].setColor(0.9f, 0.8f, 0.7f);
-        scene[6].setEmi(0.0f, 0.0f, 0.0f);
-
-        // right sphere
-        scene[7] = new Sphere();
-        scene[7].setRadius(0.16f);
-        scene[7].setPosition(0.25f, -0.24f, 0.1f);
-        scene[7].setColor(0.9f, 0.8f, 0.7f);
-        scene[7].setEmi(0.0f, 0.0f, 0.0f);
-
-        // lightsource
-        scene[8] = new Sphere();
-        scene[8].setRadius(1.0f);
-        scene[8].setPosition(0.0f, 1.36f, 0.0f);
-        scene[8].setColor(0.0f, 0.0f, 0.0f);
-        scene[8].setEmi(9.0f, 8.0f, 6.0f);
-
-    }
 
     public Vec3f trace(Ray camray)
     {
@@ -105,8 +41,8 @@ public class PathTracer {
             float t; //distance to intersection
             int hitsphere_id = 0;
 
-            Intersect it = intersectSpheres(ray);
-
+            //Intersect it = intersectSpheres(ray);
+            Intersect it = w.hit(ray);
             if(!it.hit)
             {
                 mask.x = mask.x * 0.15f;
@@ -189,38 +125,11 @@ public class PathTracer {
         return (Float.intBitsToFloat((int) resui) - 2.0f) / 2.0f;
     }
 
-    Intersect intersectSpheres(Ray ray)
+    public void updateScene()
     {
-        //float inf = 1e20f;
-        Intersect res;
-
-        res = new Intersect();
-        res.t = 1e20f;
-        res.hit = false;
-
-        for(int i = 0 ; i < scene.length ; i++)
-        {
-            Sphere sphere = scene[i];
-
-            Intersect it = sphere.hit(ray);
-
-            //if(it.t != 0.0f && it.t < res.t) {
-            if(it.hit && it.t < res.t){
-                res.hit = it.hit;
-                res.t = it.t;
-                res.sphere_id = i;
-                res.sphere = sphere;
-                res.hitpoint = it.hitpoint;
-                res.normal = it.normal;
-                res.cosine_factor = it.cosine_factor;
-            }
-        }
-
-        if(res.t < 1e20f && res.sphere != null)
-            res.hit = true;
-
-        return res;
+        w.updateScene();
     }
+
 
     public Vec3f[][] render(int width, int height)
     {
@@ -277,6 +186,7 @@ public class PathTracer {
         for(int i = 0; i< numFrames; i++){
             Vec3f[][] output = pt.render(imWidth, imHeigth);
             writeImage(output, i);
+            pt.updateScene();
         }
 
     }

@@ -29,6 +29,13 @@ public class Vec3f {
         this.z = z;
     }
 
+    public void invert()
+    {
+        this.x = -this.x;
+        this.y = -this.y;
+        this.z = -this.z;
+    }
+
     public void set(float x, float y, float z)
     {
         this.x = x;

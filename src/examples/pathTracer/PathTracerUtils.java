@@ -206,7 +206,7 @@ public class PathTracerUtils {
     }
 
 
-    public Pointer<Float> setSpheresIncrement(float increment) {
+    public Pointer<Float> setSpheresIncrement(float position) {
         int numSpheres = 9;
         Pointer<Float> sphere = Pointer.allocateFloats(16 * numSpheres);
 
@@ -342,7 +342,7 @@ public class PathTracerUtils {
         sphere.set(98, 0.0f);
         sphere.set(99, 0.0f);
 
-        sphere.set(100, -0.25f + increment);
+        sphere.set(100, -0.25f);
         sphere.set(101, -0.24f);
         sphere.set(102, -0.1f);
         sphere.set(103, 0.0f);
@@ -363,8 +363,8 @@ public class PathTracerUtils {
         sphere.set(114, 0.0f);
         sphere.set(115, 0.0f);
 
-        sphere.set(116, 0.25f + increment);
-        sphere.set(117, -0.24f);
+        sphere.set(116, 0.25f);
+        sphere.set(117, position);
         sphere.set(118, 0.1f);
         sphere.set(119, 0.0f);
 

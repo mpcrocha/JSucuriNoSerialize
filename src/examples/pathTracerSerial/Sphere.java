@@ -8,12 +8,14 @@ public class Sphere {
     private Vec3f pos;
     private Vec3f emi;
     private Vec3f color;
+    private Vec3f velocity;
 
     public Sphere()
     {
         pos = new Vec3f();
         emi = new Vec3f();
         color = new Vec3f();
+        velocity = new Vec3f(0.0f,-0.01f,0.0f);
     }
 
     public Sphere(float pos_x, float pos_y, float pos_z, float radius)
@@ -27,6 +29,19 @@ public class Sphere {
         setPosition(pos);
         setRadius(radius);
     }
+
+    public Vec3f getVelocity()
+    {
+        return velocity;
+    }
+
+//    public void updatePosition()
+//    {
+//        if(getPosition().y <= -0.2f)
+//            velocity.y = +0.01f;
+//        else
+//            getPosition().add(velocity);
+//    }
 
     public void setEmi(float x, float y, float z)
     {
@@ -81,6 +96,26 @@ public class Sphere {
     public Vec3f getPosition()
     {
         return this.pos;
+    }
+
+    Intersect hit(Sphere sph)
+    {
+        Intersect it = new Intersect();
+        it.hit = false;
+
+        float dist = (float) Math.sqrt(Math.pow(sph.getPosition().x - this.getPosition().x,2) + Math.pow(sph.getPosition().y - this.getPosition().y,2));
+
+        if(dist < (this.getRadius() + sph.getRadius()))
+        {
+            it.hit = true;
+
+            it.normal = new Vec3f(sph.getPosition());
+            it.normal.sub(this.getPosition());
+            it.normal.normalize();
+            //it.normal.mul(0.01f);
+        }
+
+        return it;
     }
 
     Intersect hit(Ray ray)
