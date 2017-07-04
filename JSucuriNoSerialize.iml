@@ -16,5 +16,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="javacl-1.0.0-RC4" level="project" />
   </component>
 </module>

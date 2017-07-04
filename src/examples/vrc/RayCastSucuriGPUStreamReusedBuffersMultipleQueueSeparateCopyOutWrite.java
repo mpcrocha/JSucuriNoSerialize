@@ -78,7 +78,6 @@ public class RayCastSucuriGPUStreamReusedBuffersMultipleQueueSeparateCopyOutWrit
                 if(inputs[inputs.length - 1] instanceof CLEvent) {
                     CLEvent previousKernelEvent = (CLEvent)inputs[inputs.length - 1];
                     previousKernelEvent.waitFor();
-
                 }
 
                 CLEvent copyDataEv = bufferData.write(queueCL, dataPointer, false);
@@ -168,8 +167,10 @@ public class RayCastSucuriGPUStreamReusedBuffersMultipleQueueSeparateCopyOutWrit
                     previousCopyOutEvent.waitFor();
                     previousCopyOutEvent.release();
                 }
+                int[] globalWorkSizes = new int[] { width * height};
+                int[] localWorkS = new int[]{64};
 
-                CLEvent kernelEv = kernel.enqueueNDRange(queueCL, new int[]{width, height}, new int[]{16, 15});
+                CLEvent kernelEv = kernel.enqueueNDRange(queueCL, globalWorkSizes, localWorkS);
                 queueCL.finish();
                 Object[] outputEvent = new Object[]{bufferOutput, kernelEv, bufferData};
                 return outputEvent;
@@ -184,14 +185,14 @@ public class RayCastSucuriGPUStreamReusedBuffersMultipleQueueSeparateCopyOutWrit
                 CLBuffer<Integer> bufferOutput = (CLBuffer<Integer>) outputEvent[0];
 
                 CLEvent kernelEv = (CLEvent)outputEvent[1];
-                CLBuffer<Float> bufferData = (CLBuffer<Float>) outputEvent[2];
+                //CLBuffer<Float> bufferData = (CLBuffer<Float>) outputEvent[2];
 
                 Camera camera = (Camera)inputs[1];
                 kernelEv.waitFor();
 
                 kernelEv.release();
                 //bufferData.release();
-                CLQueue queueCL = (CLQueue)inputs[3];
+                CLQueue queueCL = (CLQueue)inputs[2];
                 int width = camera.getWidth();
                 int height = camera.getHeight();
                 Pointer<Integer> colors = Pointer.allocateInts(width * height * 4);
@@ -327,7 +328,7 @@ public class RayCastSucuriGPUStreamReusedBuffersMultipleQueueSeparateCopyOutWrit
             Node kernel = new Node(assyncKernel, 6);
             kernelList.add(kernel);
             graph.add(kernelList.get(i));
-            Node copyOut = new Node(assyncCopyOut, 4);
+            Node copyOut = new Node(assyncCopyOut, 3);
             copyOutList.add(copyOut);
             graph.add(copyOutList.get(i));
             Feeder cameraFeeder = new Feeder(cameraFeeder(imWidth, imHeight,
@@ -349,18 +350,20 @@ public class RayCastSucuriGPUStreamReusedBuffersMultipleQueueSeparateCopyOutWrit
 
             filePathFeederList.get(i).add_edge(readImageNodeList.get(i), 0);
             dimensionsFeederList.get(i).add_edge(readImageNodeList.get(i), 1);
+
             readImageNodeList.get(i).add_edge(copyInImageList.get(i), 0);
+            bufferFeederList.get(i).add_edge(copyInImageList.get(i), 1);
+            queueFeederList.get(i).add_edge(copyInImageList.get(i), 2);
+
             copyInImageList.get(i).add_edge(kernelList.get(i), 0);
             cameraFeederList.get(i).add_edge(kernelList.get(i), 4);
             samplesFeederList.get(i).add_edge(kernelList.get(i), 1);
             gridFeederList.get(i).add_edge(kernelList.get(i), 2);
             queueFeederList.get(i).add_edge(kernelList.get(i), 3);
+
             kernelList.get(i).add_edge(copyOutList.get(i), 0);
             cameraFeederList.get(i).add_edge(copyOutList.get(i), 1);
-            numIterFeederList.get(i).add_edge(copyOutList.get(i), 2);
-            queueFeederList.get(i).add_edge(copyOutList.get(i), 3);
-            bufferFeederList.get(i).add_edge(copyInImageList.get(i), 1);
-            queueFeederList.get(i).add_edge(copyInImageList.get(i), 2);
+            queueFeederList.get(i).add_edge(copyOutList.get(i), 2);
 
             copyOutList.get(i).add_edge(writeOutImageNodeList.get(i), 0);
             numIterFeederList.get(i).add_edge(writeOutImageNodeList.get(i), 1);
