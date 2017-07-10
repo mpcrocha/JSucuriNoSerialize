@@ -107,6 +107,7 @@ __global float *urand_x, __global float *urand_y, int width, int height)  {
     pt.y = -(((float)y / (float)height) - 0.65f) / aspect;
 
 	if(sample) {
+	    printf("sample");
         point jt = jitter(x, y, sample, irand, urand_x, urand_y);
 		pt.x += jt.x * sf;
 		pt.y += jt.y * sf / aspect;
@@ -114,7 +115,6 @@ __global float *urand_x, __global float *urand_y, int width, int height)  {
 
 	return pt;
 }
-
 
 ray get_primary_ray(__local camera *cam, int x, int y, int sample, __global int *irand, __global float *urand_x,
 __global float *urand_y, int width, int height) {
@@ -444,8 +444,12 @@ __kernel void raycast(__global float scData[], int samples, float grid_p0_x,
 	float rcp_samples = 1.0f / (float)samples;
 
 	int s;
-	int i = get_global_id(0);
-	int j = get_global_id(1);
+	//int i = get_global_id(0);
+	//int j = get_global_id(1);
+
+    unsigned int work_item_id = get_global_id(0);	/* the unique global id of the work item for the current pixel */
+    unsigned int i = work_item_id % width;			/* x-coordinate of the pixel */
+    unsigned int j = work_item_id / width;
 
 	//index = j*width + i; // used to fuck all up here! i*height + j
 	index = j*width + i;
